@@ -4,27 +4,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server.js"
+      "destination": "/backend/server.js"
     },
     {
-      "source": "/login",
-      "destination": "/login.html"
+      "source": "/((?!api/).*)",
+      "destination": "/frontend/dist/$1"
     },
     {
-      "source": "/register",
-      "destination": "/register.html"
-    },
-    {
-      "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/demo",
-      "destination": "/demo.html"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
+      "source": "/(.*)",
+      "destination": "/frontend/dist/index.html"
     }
   ]
 }
