@@ -22,7 +22,7 @@ app.use(cors());
 app.use(bodyParser.json());
 // Serve production React app statics if present relative to root
 app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Configure upload directory
 const UPLOAD_DIR = process.env.VERCEL

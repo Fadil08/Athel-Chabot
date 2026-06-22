@@ -4,15 +4,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/server.js"
+      "destination": "/server.js"
     },
     {
       "source": "/((?!api/).*)",
-      "destination": "/frontend/dist/$1"
+      "destination": "/../frontend/dist/$1"
     },
     {
       "source": "/(.*)",
-      "destination": "/frontend/dist/index.html"
+      "destination": "/../frontend/dist/index.html"
     }
   ]
 }
