@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { apiFetch } from './api';
 import './Dashboard.css';
 
@@ -445,12 +445,12 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="card-footer">
-                          <a href={`/admin.html?chatbotId=${bot.id}`} className="open-agent-link">
+                          <Link to={`/admin?chatbotId=${bot.id}`} className="open-agent-link">
                             Open Agent
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                             </svg>
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     );
