@@ -36,8 +36,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(bodyParser.json());
-// Serve production React app statics if present relative to root
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
+// Only serve backend's own public folder (e.g. widget.js, embed scripts)
+// Frontend is a separate Vercel deployment — do NOT serve frontend/dist from here
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Configure upload directory (local dev only)
