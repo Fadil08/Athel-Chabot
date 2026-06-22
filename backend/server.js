@@ -558,24 +558,23 @@ app.post('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, upl
       status: 'processing'
     });
 
-    // Extract PDF in background
-    (async () => {
-      try {
-        const excerpts = await pdfProcessor.processPdf(fileBuffer, fileName, finalDocId);
-        // Excerpts need to carry chatbotId
-        const excerptsWithBotId = excerpts.map(e => ({ ...e, chatbotId }));
-        await dbManager.addKnowledgeBase(chatbotId, excerptsWithBotId);
-        await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'processed');
+    // Extract PDF and wait for completion (required for Vercel/serverless environments)
+    try {
+      const excerpts = await pdfProcessor.processPdf(fileBuffer, fileName, finalDocId);
+      const excerptsWithBotId = excerpts.map(e => ({ ...e, chatbotId }));
+      await dbManager.addKnowledgeBase(chatbotId, excerptsWithBotId);
+      await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'processed');
+      doc.status = 'processed';
 
-        // Cleanup local file if it exists on disk
-        if (req.file.path) {
-          try { fs.unlinkSync(req.file.path); } catch (e) {}
-        }
-      } catch (pdfErr) {
-        console.error('PDF extraction failed:', pdfErr);
-        await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'failed');
+      // Cleanup local file if it exists on disk
+      if (req.file.path) {
+        try { fs.unlinkSync(req.file.path); } catch (e) {}
       }
-    })();
+    } catch (pdfErr) {
+      console.error('PDF extraction failed:', pdfErr);
+      await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'failed');
+      doc.status = 'failed';
+    }
 
     res.json(doc);
   } catch (err) {
