@@ -1,4 +1,22 @@
 require('dotenv').config();
+
+// Polyfills for pdf-parse in serverless environments (like Vercel)
+const DummyDOMMatrix = class DOMMatrix {
+  constructor() { this.a=1;this.b=0;this.c=0;this.d=1;this.e=0;this.f=0; }
+};
+const DummyImageData = class ImageData {
+  constructor(w, h) { this.width = w; this.height = h; this.data = new Uint8ClampedArray(w * h * 4); }
+};
+const DummyPath2D = class Path2D {};
+
+global.DOMMatrix = global.DOMMatrix || globalThis.DOMMatrix || DummyDOMMatrix;
+global.ImageData = global.ImageData || globalThis.ImageData || DummyImageData;
+global.Path2D = global.Path2D || globalThis.Path2D || DummyPath2D;
+
+globalThis.DOMMatrix = global.DOMMatrix;
+globalThis.ImageData = global.ImageData;
+globalThis.Path2D = global.Path2D;
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');

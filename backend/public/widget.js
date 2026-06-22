@@ -23,23 +23,45 @@
     }
   };
 
-  // Auto-init fallback if loaded via simple script tag with data-chatbot-id
+  // Auto-init fallback if loaded via script tag with data-agent-key or data-chatbot-id
   document.addEventListener('DOMContentLoaded', () => {
-    const scriptTag = document.querySelector('script[data-chatbot-id]');
+    const scriptTag = document.querySelector('script[data-agent-key]') || document.querySelector('script[data-chatbot-id]');
     if (scriptTag) {
+      const agentKey = scriptTag.getAttribute('data-agent-key');
       const chatbotId = scriptTag.getAttribute('data-chatbot-id');
-      const apiHost = window.location.origin;
-      const configUrl = `${apiHost}/api/chatbots/${chatbotId}/embed-config`;
-      const chatUrl = `${apiHost}/api/chatbots/${chatbotId}/chat`;
+      
+      // Determine apiHost: it should be the host where the script itself was loaded from!
+      let apiHost = window.location.origin;
+      try {
+        const urlObj = new URL(scriptTag.src);
+        apiHost = urlObj.origin;
+      } catch (e) {}
 
-      fetch(configUrl)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.branding) {
-            setupWidget(apiHost, chatUrl, data.name, data.branding);
-          }
-        })
-        .catch(err => console.warn('Chatagentive: Auto-init failed', err));
+      if (agentKey) {
+        const configUrl = `${apiHost}/api/agents/${agentKey}/config`;
+        const chatUrl = `${apiHost}/api/agents/${agentKey}/chat`;
+
+        fetch(configUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.branding) {
+              setupWidget(apiHost, chatUrl, data.name, data.branding);
+            }
+          })
+          .catch(err => console.warn('Chatagentive: Auto-init with key failed', err));
+      } else if (chatbotId) {
+        const configUrl = `${apiHost}/api/chatbots/${chatbotId}/embed-config`;
+        const chatUrl = `${apiHost}/api/chatbots/${chatbotId}/chat`;
+
+        fetch(configUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.branding) {
+              setupWidget(apiHost, chatUrl, data.name, data.branding);
+            }
+          })
+          .catch(err => console.warn('Chatagentive: Auto-init with id failed', err));
+      }
     }
   });
 

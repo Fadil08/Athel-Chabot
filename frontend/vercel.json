@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/widget.js",
+      "destination": "https://athel-backend.vercel.app/widget.js"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://athel-backend.vercel.app/api/:path*"
     },

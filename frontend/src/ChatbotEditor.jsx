@@ -81,8 +81,12 @@ export default function ChatbotEditor() {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       
-      // Fetch Config
-      const configRes = await apiFetch(`/api/chatbots/${chatbotId}/config`, { headers });
+      // Fetch Config and Stats in parallel to reduce loading latency
+      const [configRes, statsRes] = await Promise.all([
+        apiFetch(`/api/chatbots/${chatbotId}/config`, { headers }),
+        apiFetch(`/api/chatbots/${chatbotId}/stats`, { headers })
+      ]);
+
       if (configRes.ok) {
         const configData = await configRes.json();
         setBotConfig(configData);
@@ -97,8 +101,6 @@ export default function ChatbotEditor() {
         showToast('Gagal memuat konfigurasi bot', 'error');
       }
 
-      // Fetch Stats
-      const statsRes = await apiFetch(`/api/chatbots/${chatbotId}/stats`, { headers });
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
