@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "uploads/*",
+    "database.json",
+    "database.sqlite",
+    "node_modules/*",
+    ".git/*"
+  ]
+}

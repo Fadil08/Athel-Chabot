@@ -1,0 +1,25 @@
+{
+  "storageBackend": "json",
+  "databaseConfig": {
+    "sqlite": {
+      "filename": "database.sqlite"
+    },
+    "mysql": {
+      "host": "localhost",
+      "port": 3306,
+      "user": "root",
+      "password": "your_password",
+      "database": "chatbot_db"
+    },
+    "mongodb": {
+      "uri": "mongodb://localhost:27017/chatbot_akademik"
+    },
+    "postgres": {
+      "host": "localhost",
+      "port": 5432,
+      "user": "postgres",
+      "password": "your_password",
+      "database": "chatbot_akademik"
+    }
+  }
+}

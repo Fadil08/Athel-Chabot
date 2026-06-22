@@ -1,0 +1,37 @@
+{
+  "storageBackend": "mysql",
+  "nlp": {
+    "similarityThreshold": 0.6,
+    "stemmingEnabled": true,
+    "stopWordsEnabled": true,
+    "language": "id"
+  },
+  "branding": {
+    "fallbackMessage": "Maaf, saya belum mengerti pertanyaan Anda. Silakan hubungi admin akademik atau coba pertanyaan lain.",
+    "greetingMessage": "Halo! Selamat datang di Chatbot Akademik. Ada yang bisa saya bantu?",
+    "widgetTitle": "Chatbot Akademik",
+    "welcomeText": "Siap membantu Anda 24/7"
+  },
+  "databaseConfig": {
+    "sqlite": {
+      "filename": "database.sqlite"
+    },
+    "mongodb": {
+      "uri": "mongodb://localhost:27017/chatbot_akademik"
+    },
+    "mysql": {
+      "host": "localhost",
+      "port": 3306,
+      "user": "root",
+      "password": "",
+      "database": "chatbot_akademik"
+    },
+    "postgres": {
+      "host": "localhost",
+      "port": 5432,
+      "user": "postgres",
+      "password": "",
+      "database": "chatbot_akademik"
+    }
+  }
+}

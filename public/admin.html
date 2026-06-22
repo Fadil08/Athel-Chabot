@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Config Agent — Aethel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060b18;
+            --sidebar-bg: #080d1c;
+            --card: rgba(255,255,255,0.03);
+            --card-border: rgba(255,255,255,0.07);
+            --card-hover: rgba(255,255,255,0.05);
+            --primary: #ff5a79;
+            --primary-2: #ff8c42;
+            --primary-glow: rgba(255,90,121,0.25);
+            --blue: #3b82f6;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --muted-2: #94a3b8;
+            --sidebar-w: 240px;
+        }
+        body.light-theme {
+            --bg: #f4f6fa;
+            --sidebar-bg: #eaedf3;
+            --card: rgba(0,0,0,0.02);
+            --card-border: rgba(0,0,0,0.08);
+            --card-hover: rgba(0,0,0,0.04);
+            --text: #0f172a;
+            --muted: #64748b;
+            --muted-2: #475569;
+        }
+        body.light-theme::before, body.light-theme::after {
+            opacity: 0.35;
+        }
+        body.light-theme .nav-item:hover {
+            background: rgba(0,0,0,0.04);
+        }
+        body.light-theme .nav-item.active {
+            background: rgba(0,0,0,0.06);
+        }
+        body.light-theme input, body.light-theme textarea, body.light-theme select {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.12);
+            color: var(--text);
+        }
+        body.light-theme input:focus, body.light-theme textarea:focus, body.light-theme select:focus {
+            border-color: var(--primary);
+        }
+        body.light-theme .tab-btn:hover {
+            background: rgba(0,0,0,0.03);
+        }
+        body.light-theme .tab-btn.active {
+            background: rgba(0,0,0,0.06);
+        }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Outfit',sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            overflow-x:hidden;
+        }
+        body::before {
+            content:'';
+            position:fixed;
+            top:-20%;
+            left:-10%;
+            width:500px;
+            height:500px;
+            border-radius:50%;
+            background:radial-gradient(circle, rgba(255,90,121,0.06) 0%, transparent 70%);
+            pointer-events:none;
+            z-index:0;
+        }
+        body::after {
+            content:'';
+            position:fixed;
+            bottom:-10%;
+            right:-5%;
+            width:600px;
+            height:600px;
+            border-radius:50%;
+            background:radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 70%);
+            pointer-events:none;
+            z-index:0;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position:fixed;
+            left:0; top:0;
+            width:var(--sidebar-w);
+            height:100vh;
+            background:var(--sidebar-bg);
+            border-right:1px solid var(--card-border);
+            display:flex;
+            flex-direction:column;
+            padding:20px 16px;
+            z-index:100;
+        }
+        .logo {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:4px 8px;
+            margin-bottom:28px;
+            text-decoration:none;
+        }
+        .logo-mark {
+            width:32px; height:32px;
+            background:linear-gradient(135deg,var(--primary),var(--primary-2));
+            border-radius:9px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:800;
+            font-size:17px;
+            color:#fff;
+            flex-shrink:0;
+        }
+        .logo-text { font-size:17px; font-weight:700; color:var(--text); }
+
+        .nav { flex-grow:1; display:flex; flex-direction:column; gap:2px; }
+        .nav-item {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 12px;
+            border-radius:8px;
+            cursor:pointer;
+            color:var(--muted);
+            font-size:14px;
+            font-weight:500;
+            text-decoration:none;
+            transition:all 0.2s;
+        }
+        .nav-item:hover { background:rgba(255,255,255,0.05); color:var(--muted-2); }
+        .nav-item.active { background:rgba(255,90,121,0.12); color:var(--primary); }
+        .nav-item svg { width:17px; height:17px; fill:currentColor; flex-shrink:0; }
+        .nav-sep { height:1px; background:var(--card-border); margin:10px 4px; }
+
+        .user-box {
+            border-top:1px solid var(--card-border);
+            padding-top:16px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+        .user-row {
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        .avatar {
+            width:34px; height:34px;
+            border-radius:50%;
+            background:linear-gradient(135deg,#f59e0b,#ef4444);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            font-size:15px;
+            color:#fff;
+            flex-shrink:0;
+        }
+        .user-name { font-size:13px; font-weight:600; }
+        .user-email { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+        .logout-btn {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            background:none;
+            border:none;
+            color:var(--muted);
+            font-size:13px;
+            font-weight:500;
+            cursor:pointer;
+            padding:6px 4px;
+            transition:color 0.2s;
+        }
+        .logout-btn:hover { color:var(--red); }
+        .logout-btn svg { width:15px; height:15px; fill:currentColor; }
+
+        /* ===== MAIN ===== */
+        .main {
+            margin-left:var(--sidebar-w);
+            min-height:100vh;
+            padding:32px 40px;
+            position:relative;
+            z-index:1;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:13px;
+            color:var(--muted);
+            margin-bottom:20px;
+        }
+        .breadcrumb a { color:var(--muted); text-decoration:none; transition:color 0.2s; }
+        .breadcrumb a:hover { color:var(--primary); }
+        .breadcrumb .sep { color:var(--muted); opacity:0.4; }
+        .breadcrumb .current { color:var(--text); font-weight:500; }
+
+        /* Tab Bar */
+        .tab-bar {
+            display:flex;
+            gap:0;
+            border-bottom:1px solid var(--card-border);
+            margin-bottom:32px;
+        }
+        .tab-btn {
+            padding:12px 20px;
+            font-size:14px;
+            font-weight:500;
+            color:var(--muted);
+            cursor:pointer;
+            border-bottom:2px solid transparent;
+            transition:all 0.2s;
+            background:none;
+            border-top:none;
+            border-left:none;
+            border-right:none;
+            display:flex;
+            align-items:center;
+            gap:7px;
+        }
+        .tab-btn svg { width:15px; height:15px; fill:currentColor; }
+        .tab-btn:hover { color:var(--muted-2); }
+        .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+
+        /* Cards */
+        .card {
+            background:var(--card);
+            border:1px solid var(--card-border);
+            border-radius:14px;
+            padding:24px;
+            margin-bottom:20px;
+            backdrop-filter:blur(8px);
+        }
+        .card-title {
+            font-size:17px;
+            font-weight:700;
+            margin-bottom:4px;
+        }
+        .card-desc {
+            font-size:13px;
+            color:var(--muted);
+            margin-bottom:20px;
+            line-height:1.5;
+        }
+
+        /* Forms */
+        .form-group { margin-bottom:18px; }
+        .form-row { display:grid; gap:16px; margin-bottom:18px; }
+        .form-row-2 { grid-template-columns:1fr 1fr; }
+        .form-row-3 { grid-template-columns:1fr 1fr 1fr; }
+        label {
+            display:block;
+            font-size:12px;
+            font-weight:600;
+            color:var(--muted-2);
+            text-transform:uppercase;
+            letter-spacing:0.04em;
+            margin-bottom:8px;
+        }
+        input, textarea, select {
+            width:100%;
+            background:rgba(255,255,255,0.04);
+            border:1px solid var(--card-border);
+            border-radius:8px;
+            padding:11px 14px;
+            color:var(--text);
+            font-family:inherit;
+            font-size:14px;
+            outline:none;
+            transition:all 0.2s;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color:var(--primary);
+            box-shadow:0 0 0 3px var(--primary-glow);
+        }
+        select option { background:#0f172a; }
+        textarea { resize:vertical; min-height:90px; }
+        input[readonly] { opacity:0.7; cursor:default; }
+
+        /* Input with actions */
+        .input-action-group {
+            display:flex;
+            background:rgba(255,255,255,0.04);
+            border:1px solid var(--card-border);
+            border-radius:8px;
+            overflow:hidden;
+            transition:border-color 0.2s;
+        }
+        .input-action-group:focus-within {
+            border-color:var(--primary);
+            box-shadow:0 0 0 3px var(--primary-glow);
+        }
+        .input-action-group input {
+            border:none;
+            background:none;
+            box-shadow:none;
+            flex-grow:1;
+        }
+        .input-action-group input:focus { box-shadow:none; }
+        .ia-btn {
+            width:36px;
+            background:none;
+            border:none;
+            border-left:1px solid var(--card-border);
+            color:var(--muted);
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:all 0.2s;
+            flex-shrink:0;
+        }
+        .ia-btn:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+        .ia-btn svg { width:15px; height:15px; fill:currentColor; }
+
+        /* Buttons */
+        .btn {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:7px;
+            padding:10px 18px;
+            border-radius:8px;
+            font-family:inherit;
+            font-size:14px;
+            font-weight:600;
+            border:none;
+            cursor:pointer;
+            transition:all 0.2s;
+            white-space:nowrap;
+        }
+        .btn svg { width:15px; height:15px; fill:currentColor; }
+        .btn-primary {
+            background:linear-gradient(135deg,var(--primary),var(--primary-2));
+            color:#fff;
+            box-shadow:0 4px 12px rgba(255,90,121,0.3);
+        }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(255,90,121,0.4); }
+        .btn-primary:active { transform:translateY(0); }
+        .btn-secondary { background:rgba(255,255,255,0.07); color:var(--text); }
+        .btn-secondary:hover { background:rgba(255,255,255,0.12); }
+        .btn-ghost { background:none; color:var(--muted); border:1px solid var(--card-border); }
+        .btn-ghost:hover { background:rgba(255,255,255,0.05); color:var(--text); }
+        .btn-danger { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.25); }
+        .btn-danger:hover { background:rgba(239,68,68,0.25); }
+        .btn-success { background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.25); }
+        .btn-success:hover { background:rgba(16,185,129,0.25); }
+        .btn-sm { padding:7px 12px; font-size:12px; }
+        .btn-xs { padding:5px 9px; font-size:11px; }
+        .btn-full { width:100%; }
+        .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none!important; }
+
+        /* Connection status badge */
+        .conn-badge {
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:5px 12px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:600;
+        }
+        .conn-dot {
+            width:7px; height:7px;
+            border-radius:50%;
+            flex-shrink:0;
+        }
+        .conn-ok { background:rgba(16,185,129,0.15); color:#34d399; }
+        .conn-ok .conn-dot { background:#10b981; box-shadow:0 0 6px #10b981; animation:pulse-green 2s infinite; }
+        .conn-fail { background:rgba(239,68,68,0.15); color:#f87171; }
+        .conn-fail .conn-dot { background:#ef4444; }
+        .conn-idle { background:rgba(100,116,139,0.15); color:var(--muted-2); }
+        .conn-idle .conn-dot { background:var(--muted); }
+        @keyframes pulse-green {
+            0%,100% { box-shadow:0 0 6px #10b981; }
+            50% { box-shadow:0 0 12px #10b981; }
+        }
+
+        /* Toggle Switch */
+        .toggle-row {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 16px;
+            background:rgba(255,255,255,0.02);
+            border:1px solid var(--card-border);
+            border-radius:10px;
+            margin-bottom:18px;
+        }
+        .toggle-info { display:flex; flex-direction:column; gap:3px; }
+        .toggle-label { font-size:14px; font-weight:600; }
+        .toggle-sub { font-size:12px; color:var(--muted); }
+        .switch { position:relative; display:inline-block; width:46px; height:26px; flex-shrink:0; }
+        .switch input { opacity:0; width:0; height:0; }
+        .slider {
+            position:absolute;
+            cursor:pointer;
+            inset:0;
+            background:rgba(255,255,255,0.1);
+            border-radius:13px;
+            transition:0.3s;
+        }
+        .slider:before {
+            content:'';
+            position:absolute;
+            width:20px; height:20px;
+            left:3px; bottom:3px;
+            background:#fff;
+            border-radius:50%;
+            transition:0.3s;
+        }
+        input:checked + .slider { background:linear-gradient(135deg,var(--primary),var(--primary-2)); }
+        input:checked + .slider:before { transform:translateX(20px); }
+
+        /* ===== KNOWLEDGE BASE TAB ===== */
+        .kb-layout {
+            display:grid;
+            grid-template-columns:200px 1fr;
+            gap:24px;
+        }
+        .kb-nav { display:flex; flex-direction:column; gap:4px; }
+        .kb-nav-item {
+            display:flex;
+            align-items:center;
+            gap:9px;
+            padding:10px 12px;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:13px;
+            font-weight:600;
+            color:var(--muted);
+            transition:all 0.2s;
+        }
+        .kb-nav-item:hover { background:rgba(255,255,255,0.05); color:var(--muted-2); }
+        .kb-nav-item.active { background:rgba(255,90,121,0.12); color:var(--primary); }
+        .kb-nav-item svg { width:16px; height:16px; fill:currentColor; flex-shrink:0; }
+
+        .kb-pane { display:none; }
+        .kb-pane.active { display:block; }
+
+        /* Upload drag area */
+        .drop-zone {
+            border:2px dashed var(--card-border);
+            border-radius:12px;
+            padding:40px 24px;
+            text-align:center;
+            cursor:pointer;
+            transition:all 0.25s;
+            background:rgba(255,255,255,0.01);
+            margin-bottom:16px;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color:var(--primary);
+            background:rgba(255,90,121,0.04);
+        }
+        .drop-icon { font-size:36px; margin-bottom:12px; }
+        .drop-title { font-size:15px; font-weight:600; margin-bottom:6px; }
+        .drop-sub { font-size:12px; color:var(--muted); }
+
+        /* Upload progress */
+        .upload-progress {
+            display:none;
+            background:rgba(255,255,255,0.03);
+            border:1px solid var(--card-border);
+            border-radius:10px;
+            padding:14px 16px;
+            margin-bottom:16px;
+        }
+        .upload-progress.show { display:flex; align-items:center; gap:12px; }
+        .progress-bar-wrap {
+            flex-grow:1;
+            background:rgba(255,255,255,0.06);
+            border-radius:4px;
+            height:6px;
+            overflow:hidden;
+        }
+        .progress-bar {
+            height:100%;
+            background:linear-gradient(90deg,var(--primary),var(--primary-2));
+            border-radius:4px;
+            transition:width 0.3s;
+            width:0%;
+        }
+
+        /* Documents Table */
+        .table-wrap { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; }
+        th {
+            text-align:left;
+            font-size:11px;
+            font-weight:600;
+            color:var(--muted);
+            text-transform:uppercase;
+            letter-spacing:0.05em;
+            padding:10px 14px;
+            border-bottom:1px solid var(--card-border);
+        }
+        td {
+            padding:12px 14px;
+            font-size:13px;
+            border-bottom:1px solid rgba(255,255,255,0.04);
+            vertical-align:middle;
+        }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(255,255,255,0.02); }
+
+        .badge {
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            padding:3px 10px;
+            border-radius:20px;
+            font-size:11px;
+            font-weight:600;
+        }
+        .badge-green { background:rgba(16,185,129,0.15); color:#34d399; }
+        .badge-red { background:rgba(239,68,68,0.15); color:#f87171; }
+        .badge-amber { background:rgba(245,158,11,0.15); color:#fbbf24; }
+        .badge-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+        /* ===== INTERACTIVE ZONE ===== */
+        .sim-layout { display:grid; grid-template-columns:1fr 380px; gap:24px; }
+        .sim-info { display:flex; flex-direction:column; gap:16px; }
+        .sim-window {
+            height:560px;
+            background:#080d1c;
+            border:1px solid var(--card-border);
+            border-radius:14px;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+            box-shadow:0 16px 40px rgba(0,0,0,0.4);
+        }
+        .sim-header {
+            background:rgba(255,255,255,0.03);
+            border-bottom:1px solid var(--card-border);
+            padding:14px 18px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+        }
+        .sim-header-title { font-weight:700; font-size:14px; }
+        .sim-online {
+            display:flex;
+            align-items:center;
+            gap:6px;
+            font-size:11px;
+            color:#34d399;
+            font-weight:600;
+        }
+        .sim-online-dot {
+            width:7px; height:7px;
+            border-radius:50%;
+            background:#10b981;
+            box-shadow:0 0 6px #10b981;
+            animation:pulse-green 2s infinite;
+        }
+        .sim-msgs {
+            flex-grow:1;
+            overflow-y:auto;
+            padding:16px;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+        .sim-msgs::-webkit-scrollbar { width:4px; }
+        .sim-msgs::-webkit-scrollbar-track { background:transparent; }
+        .sim-msgs::-webkit-scrollbar-thumb { background:var(--card-border); border-radius:2px; }
+        .sim-msg {
+            max-width:85%;
+            padding:10px 14px;
+            border-radius:12px;
+            font-size:13px;
+            line-height:1.5;
+            animation:msgIn 0.25s ease;
+        }
+        @keyframes msgIn {
+            from { opacity:0; transform:translateY(8px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+        .sim-msg.user {
+            align-self:flex-end;
+            background:linear-gradient(135deg,var(--primary),var(--primary-2));
+            color:#fff;
+            border-bottom-right-radius:3px;
+        }
+        .sim-msg.bot {
+            align-self:flex-start;
+            background:rgba(255,255,255,0.05);
+            color:var(--text);
+            border-bottom-left-radius:3px;
+            border:1px solid var(--card-border);
+        }
+        .sim-msg.bot.kb-source { border-left:3px solid var(--green); }
+        .sim-msg.bot.ai-source { border-left:3px solid var(--blue); }
+        .sim-source-badge {
+            display:inline-block;
+            font-size:9px;
+            font-weight:700;
+            padding:2px 6px;
+            border-radius:4px;
+            margin-bottom:5px;
+            text-transform:uppercase;
+            letter-spacing:0.05em;
+        }
+        .sim-ts { font-size:10px; color:var(--muted); margin-top:4px; display:block; text-align:right; }
+        .typing-dots {
+            display:flex;
+            gap:4px;
+            padding:10px 14px;
+            align-self:flex-start;
+            background:rgba(255,255,255,0.05);
+            border:1px solid var(--card-border);
+            border-radius:12px;
+            border-bottom-left-radius:3px;
+        }
+        .typing-dot {
+            width:6px; height:6px;
+            border-radius:50%;
+            background:var(--muted);
+            animation:typeBounce 1.2s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay:0.2s; }
+        .typing-dot:nth-child(3) { animation-delay:0.4s; }
+        @keyframes typeBounce {
+            0%,100% { transform:translateY(0); opacity:0.5; }
+            50% { transform:translateY(-5px); opacity:1; }
+        }
+        .sim-input-bar {
+            padding:12px 14px;
+            background:rgba(255,255,255,0.02);
+            border-top:1px solid var(--card-border);
+            display:flex;
+            gap:8px;
+            align-items:center;
+        }
+        .sim-input {
+            flex-grow:1;
+            background:rgba(255,255,255,0.04);
+            border:1px solid var(--card-border);
+            border-radius:8px;
+            padding:9px 13px;
+            color:var(--text);
+            font-family:inherit;
+            font-size:13px;
+            outline:none;
+            transition:border-color 0.2s;
+        }
+        .sim-input:focus { border-color:var(--primary); }
+        .sim-send {
+            width:36px; height:36px;
+            border-radius:8px;
+            background:linear-gradient(135deg,var(--primary),var(--primary-2));
+            border:none;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:all 0.2s;
+            flex-shrink:0;
+        }
+        .sim-send:hover { transform:scale(1.05); }
+        .sim-send svg { width:16px; height:16px; fill:#fff; }
+
+        /* ===== INTEGRATION TAB ===== */
+        .int-tabs { display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+        .int-tab {
+            padding:7px 14px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:600;
+            cursor:pointer;
+            background:rgba(255,255,255,0.05);
+            color:var(--muted-2);
+            border:1px solid transparent;
+            transition:all 0.2s;
+        }
+        .int-tab.active { background:rgba(255,90,121,0.15); color:var(--primary); border-color:rgba(255,90,121,0.3); }
+        .int-panel { display:none; }
+        .int-panel.active { display:block; }
+
+        .code-block {
+            background:#050810;
+            border:1px solid var(--card-border);
+            border-radius:10px;
+            padding:18px;
+            position:relative;
+            margin-bottom:12px;
+        }
+        .code-block pre {
+            font-family:'Courier New',monospace;
+            font-size:12px;
+            color:#a5f3fc;
+            line-height:1.6;
+            white-space:pre-wrap;
+            word-break:break-all;
+        }
+        .copy-btn-abs {
+            position:absolute;
+            top:10px; right:10px;
+        }
+
+        /* Platform cards */
+        .platform-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .platform-card {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 16px;
+            border:1px solid var(--card-border);
+            border-radius:10px;
+            background:rgba(255,255,255,0.02);
+            transition:border-color 0.2s;
+        }
+        .platform-card:hover { border-color:rgba(255,255,255,0.15); }
+        .platform-logo {
+            display:flex;
+            align-items:center;
+            gap:12px;
+        }
+        .platform-icon {
+            width:38px; height:38px;
+            border-radius:9px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:18px;
+            font-weight:800;
+        }
+        .platform-name { font-size:14px; font-weight:600; }
+        .platform-desc { font-size:11px; color:var(--muted); margin-top:2px; }
+
+        /* ===== SETTINGS TAB ===== */
+        .settings-layout { display:grid; grid-template-columns:200px 1fr; gap:24px; }
+        .settings-nav { display:flex; flex-direction:column; gap:4px; }
+        .settings-nav-item {
+            padding:10px 12px;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:13px;
+            font-weight:600;
+            color:var(--muted);
+            display:flex;
+            align-items:center;
+            gap:9px;
+            transition:all 0.2s;
+        }
+        .settings-nav-item svg { width:16px; height:16px; fill:currentColor; flex-shrink:0; }
+        .settings-nav-item:hover { background:rgba(255,255,255,0.05); color:var(--muted-2); }
+        .settings-nav-item.active { background:rgba(255,90,121,0.12); color:var(--primary); }
+        .settings-pane { display:none; }
+        .settings-pane.active { display:block; }
+
+        /* Danger zone */
+        .danger-zone {
+            border:1px solid rgba(239,68,68,0.25);
+            border-radius:12px;
+            padding:20px;
+            background:rgba(239,68,68,0.03);
+        }
+        .danger-title { color:#f87171; font-size:15px; font-weight:700; margin-bottom:6px; }
+        .danger-desc { color:var(--muted); font-size:13px; margin-bottom:14px; }
+
+        /* ===== MODALS ===== */
+        .modal-overlay {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.7);
+            backdrop-filter:blur(6px);
+            z-index:1000;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+        .modal-overlay.show { display:flex; }
+        .modal-box {
+            background:#0a0f1e;
+            border:1px solid var(--card-border);
+            border-radius:16px;
+            padding:28px;
+            width:100%;
+            max-width:640px;
+            max-height:85vh;
+            overflow-y:auto;
+            position:relative;
+            animation:modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:scale(0.96) translateY(10px); }
+            to { opacity:1; transform:scale(1) translateY(0); }
+        }
+        .modal-hdr {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:18px;
+            padding-bottom:14px;
+            border-bottom:1px solid var(--card-border);
+        }
+        .modal-hdr-title { font-size:16px; font-weight:700; }
+        .modal-close {
+            width:30px; height:30px;
+            border-radius:6px;
+            background:rgba(255,255,255,0.06);
+            border:none;
+            color:var(--muted);
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:18px;
+            transition:all 0.2s;
+        }
+        .modal-close:hover { background:rgba(255,255,255,0.1); color:var(--text); }
+
+        /* Auto-intent card */
+        .intent-suggestion {
+            background:rgba(255,255,255,0.02);
+            border:1px solid var(--card-border);
+            border-radius:10px;
+            padding:16px;
+            margin-bottom:10px;
+            transition:opacity 0.3s;
+        }
+        .intent-suggestion.accepted { opacity:0.35; pointer-events:none; }
+
+        /* ===== TOAST ===== */
+        .toast-wrap {
+            position:fixed;
+            bottom:24px; right:24px;
+            z-index:9999;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+            pointer-events:none;
+        }
+        .toast {
+            background:#1e293b;
+            border-left:3px solid var(--primary);
+            border-radius:8px;
+            padding:12px 18px;
+            font-size:13px;
+            font-weight:500;
+            box-shadow:0 8px 24px rgba(0,0,0,0.4);
+            max-width:360px;
+            animation:toastIn 0.3s ease;
+            pointer-events:auto;
+        }
+        .toast.success { border-color:var(--green); }
+        .toast.error { border-color:var(--red); }
+        @keyframes toastIn {
+            from { opacity:0; transform:translateX(20px); }
+            to { opacity:1; transform:translateX(0); }
+        }
+        @keyframes toastOut {
+            to { opacity:0; transform:translateX(20px); }
+        }
+
+        /* Misc */
+        .text-muted { color:var(--muted); font-size:13px; }
+        .text-center { text-align:center; }
+        .section-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+        .empty-row td { text-align:center; color:var(--muted); padding:32px!important; }
+        .spin {
+            display:inline-block;
+            width:14px; height:14px;
+            border:2px solid rgba(255,255,255,0.3);
+            border-top-color:#fff;
+            border-radius:50%;
+            animation:spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <a href="/index.html" class="logo">
+        <img src="/logo.png" alt="Aethel Logo" class="logo-mark" style="background: none; object-fit: cover;" />
+        <span class="logo-text">Aethel</span>
+    </a>
+    <nav class="nav">
+        <a href="/index.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            AI Chatbots
+        </a>
+        <a href="#" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            Agent Config
+        </a>
+        <a href="#" class="nav-item" id="nav-theme" onclick="toggleTheme(event)">
+            <svg viewBox="0 0 24 24" id="theme-icon" style="fill: currentColor; width: 16px; height: 16px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span id="theme-text">Light Mode</span>
+        </a>
+    </nav>
+    <div class="user-box">
+        <div class="user-row">
+            <div class="avatar" id="userAvatar">U</div>
+            <div>
+                <div class="user-name" id="userName">User</div>
+                <div class="user-email" id="userEmail">user@email.com</div>
+            </div>
+        </div>
+        <button class="logout-btn" id="logoutBtn">
+            <svg viewBox="0 0 24 24"><path d="M14.08 15.59L16.67 13H7v-2h9.67l-2.59-2.59L15.5 7l5 5-5 5zM19 3a2 2 0 0 1 2 2v2h-2V5H5v14h14v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>
+            Logout
+        </button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="/index.html">AI Chatbots</a>
+        <span class="sep">/</span>
+        <span class="current" id="bcBot">Loading...</span>
+        <span class="sep">/</span>
+        <span class="current">Configuration</span>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="kb" onclick="switchTab('kb')">
+            <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm-1 13.08L4.5 12.5l6.5-3.54 6.5 3.54-6.5 3.08z"/></svg>
+            Knowledge Base
+        </button>
+        <button class="tab-btn" data-tab="interactive" onclick="switchTab('interactive')">
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+            Interactive Zone
+        </button>
+        <button class="tab-btn" data-tab="integration" onclick="switchTab('integration')">
+            <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+            Integration
+        </button>
+        <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            Settings
+        </button>
+    </div>
+
+    <!-- ===== TAB: KNOWLEDGE BASE ===== -->
+    <div class="tab-panel active" id="tab-kb">
+        <div class="kb-layout">
+            <div class="kb-nav">
+                <div class="kb-nav-item active" id="kbn-files" onclick="switchKbPane('files')">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+                    Upload File
+                </div>
+                <div class="kb-nav-item" id="kbn-intents" onclick="switchKbPane('intents')">
+                    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                    Intent Manager
+                </div>
+            </div>
+
+            <div>
+                <!-- Pane: Upload -->
+                <div class="kb-pane active" id="kbp-files">
+                    <div class="card">
+                        <div class="card-title">Knowledge Base</div>
+                        <div class="card-desc">Upload PDF documents untuk digunakan sebagai referensi jawaban chatbot Anda melalui sistem RAG.</div>
+                        <div class="drop-zone" id="dropZone" onclick="document.getElementById('pdfInput').click()">
+                            <div class="drop-icon">📄</div>
+                            <div class="drop-title">Drag & Drop PDF di sini</div>
+                            <div class="drop-sub">atau klik untuk memilih file — Maks 10MB, format .pdf</div>
+                            <input type="file" id="pdfInput" accept=".pdf" style="display:none">
+                        </div>
+                        <div class="upload-progress" id="uploadProgress">
+                            <span style="font-size:12px; white-space:nowrap; color:var(--muted-2)">Mengupload...</span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                            <div>
+                                <div class="card-title" style="margin-bottom:2px;">Uploaded Files</div>
+                                <div class="text-muted">Dokumen yang telah diunggah dan diproses</div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" onclick="loadDocuments()">
+                                <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nama File</th>
+                                        <th>Ukuran</th>
+                                        <th>Tanggal</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="docsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pane: Intents -->
+                <div class="kb-pane" id="kbp-intents">
+                    <div class="card">
+                        <div class="card-title">Tambah Manual Intent</div>
+                        <div class="card-desc">Definisikan kata kunci dan respons manual sebagai prioritas utama sebelum AI dipanggil.</div>
+                        <form id="intentForm">
+                            <input type="hidden" id="intentEditId">
+                            <div class="form-row form-row-2">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Kategori</label>
+                                    <input id="intentCat" type="text" placeholder="Contoh: Informasi Umum" autocomplete="off" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>Kata Kunci <span style="color:var(--muted); font-weight:400">(pisahkan dengan koma)</span></label>
+                                    <input id="intentKeys" type="text" placeholder="jam buka, jadwal, operasional" autocomplete="off" required>
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:16px">
+                                <label>Respons Chatbot</label>
+                                <textarea id="intentResp" rows="3" placeholder="Masukkan teks respons..." required></textarea>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button type="submit" class="btn btn-primary btn-sm">Simpan Intent</button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="resetIntentForm()">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
+                            <div class="card-title" style="margin-bottom:0">Daftar Intent</div>
+                            <select id="intentFilter" onchange="filterIntents(this.value)" style="width:auto; padding:7px 12px; font-size:12px;">
+                                <option value="all">Semua Kategori</option>
+                            </select>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Kategori</th>
+                                        <th>Kata Kunci</th>
+                                        <th>Respons</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="intentsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TAB: INTERACTIVE ZONE ===== -->
+    <div class="tab-panel" id="tab-interactive">
+        <div class="sim-layout">
+            <div class="sim-info">
+                <div class="card">
+                    <div class="card-title">Interactive Zone</div>
+                    <div class="card-desc">Uji coba chatbot Anda secara real-time. Respon dengan label biru berasal dari AI, hijau berasal dari dokumen PDF.</div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted-2);">
+                            <span style="color:var(--blue); font-size:16px;">●</span> Respons dari AI Model (Gemini / Ollama)
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted-2);">
+                            <span style="color:var(--green); font-size:16px;">●</span> Respons dari dokumen PDF (RAG match)
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted-2);">
+                            <span style="color:var(--muted); font-size:16px;">●</span> Respons manual intent / fallback
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:10px;">Status Engine</div>
+                    <div id="engineStatus" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <div class="conn-badge conn-idle"><div class="conn-dot"></div>Memuat...</div>
+                    </div>
+                    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-ghost btn-sm" onclick="clearSimulator()">
+                            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            Clear Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulator -->
+            <div class="sim-window">
+                <div class="sim-header">
+                    <div>
+                        <div class="sim-header-title" id="simTitle">Chatbot Simulator</div>
+                    </div>
+                    <div class="sim-online">
+                        <div class="sim-online-dot"></div>
+                        Online
+                    </div>
+                </div>
+                <div class="sim-msgs" id="simMsgs"></div>
+                <div class="sim-input-bar">
+                    <input type="text" class="sim-input" id="simInput" placeholder="Tulis pesan Anda..." autocomplete="off">
+                    <button class="sim-send" id="simSendBtn" onclick="sendSimMessage()">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TAB: INTEGRATION ===== -->
+    <div class="tab-panel" id="tab-integration">
+        <div class="card">
+            <div class="card-title">Embed Script</div>
+            <div class="card-desc">Tempelkan script ini di dalam tag &lt;head&gt; website Anda untuk menampilkan chatbot widget.</div>
+            <div class="int-tabs">
+                <div class="int-tab active" onclick="switchIntTab('html')">HTML</div>
+                <div class="int-tab" onclick="switchIntTab('wordpress')">WordPress</div>
+                <div class="int-tab" onclick="switchIntTab('react')">React / Next.js</div>
+            </div>
+
+            <div class="int-panel active" id="intp-html">
+                <div class="code-block">
+                    <pre id="snippetHtml">Loading...</pre>
+                    <div class="copy-btn-abs">
+                        <button class="btn btn-primary btn-xs" onclick="copySnippet('html')">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="int-panel" id="intp-wordpress">
+                <div class="code-block">
+                    <pre id="snippetWp">Loading...</pre>
+                    <div class="copy-btn-abs">
+                        <button class="btn btn-primary btn-xs" onclick="copySnippet('wordpress')">Copy</button>
+                    </div>
+                </div>
+                <div style="margin-top:12px; padding:12px 14px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:8px; font-size:12px; color:#fbbf24; line-height:1.5;">
+                    💡 Di WordPress: Pergi ke <strong>Appearance → Theme Editor → header.php</strong>, lalu paste kode di dalam tag &lt;head&gt;. Atau gunakan plugin <strong>"Insert Headers and Footers"</strong>.
+                </div>
+            </div>
+
+            <div class="int-panel" id="intp-react">
+                <div class="code-block">
+                    <pre id="snippetReact">Loading...</pre>
+                    <div class="copy-btn-abs">
+                        <button class="btn btn-primary btn-xs" onclick="copySnippet('react')">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Platform Integration</div>
+            <div class="card-desc">Widget chatbot ini kompatibel dengan berbagai platform website.</div>
+            <div class="platform-grid">
+                <div class="platform-card">
+                    <div class="platform-logo">
+                        <div class="platform-icon" style="background:#21759b; color:#fff;">W</div>
+                        <div>
+                            <div class="platform-name">WordPress</div>
+                            <div class="platform-desc">Tempel di header.php</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-green">✓ Kompatibel</span>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-logo">
+                        <div class="platform-icon" style="background:#000; color:#fff;">▲</div>
+                        <div>
+                            <div class="platform-name">Next.js</div>
+                            <div class="platform-desc">Gunakan useEffect hook</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-green">✓ Kompatibel</span>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-logo">
+                        <div class="platform-icon" style="background:#42b883; color:#fff;">V</div>
+                        <div>
+                            <div class="platform-name">Vue.js</div>
+                            <div class="platform-desc">Tempel di mounted()</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-green">✓ Kompatibel</span>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-logo">
+                        <div class="platform-icon" style="background:#ff3e00; color:#fff;">S</div>
+                        <div>
+                            <div class="platform-name">Shopify</div>
+                            <div class="platform-desc">Tambah ke theme.liquid</div>
+                        </div>
+                    </div>
+                    <span class="badge badge-green">✓ Kompatibel</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TAB: SETTINGS ===== -->
+    <div class="tab-panel" id="tab-settings">
+        <div class="settings-layout">
+            <div class="settings-nav">
+                <div class="settings-nav-item active" id="sn-config" onclick="switchSettingsPane('config')">
+                    <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+                    Configuration
+                </div>
+                <div class="settings-nav-item" id="sn-ai" onclick="switchSettingsPane('ai')">
+                    <svg viewBox="0 0 24 24"><path d="M21 10.5h-1.5V8.5l-3-3h-9l-3 3v2H3c-.83 0-1.5.67-1.5 1.5v3c0 .83.67 1.5 1.5 1.5h1.5v2.5c0 .55.45 1 1 1h14c.55 0 1-.45 1-1V16.5H21c.83 0 1.5-.67 1.5-1.5v-3c0-.83-.67-1.5-1.5-1.5zM9 16.5H7v-3h2v3zm5 0h-3v-3h3v3zm3 0h-2v-3h2v3zm-11-9l2-2h8l2 2v.5H6v-.5z"/></svg>
+                    Manage AI
+                </div>
+                <div class="settings-nav-item" id="sn-appearance" onclick="switchSettingsPane('appearance')">
+                    <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                    Appearance
+                </div>
+                <div class="settings-nav-item" id="sn-nlp" onclick="switchSettingsPane('nlp')">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    NLP Settings
+                </div>
+                <div class="settings-nav-item" id="sn-danger" onclick="switchSettingsPane('danger')" style="margin-top:auto; color:#f87171;">
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    Danger Zone
+                </div>
+            </div>
+
+            <div>
+                <!-- Config Pane -->
+                <div class="settings-pane active" id="sp-config">
+                    <div class="card">
+                        <div class="card-title">Configuration</div>
+                        <div class="card-desc">Kelola identitas dan kunci akses agent chatbot Anda.</div>
+                        <form id="formConfig" onsubmit="saveConfigForm(event)">
+                            <div class="form-group">
+                                <label>Agent Key</label>
+                                <div class="input-action-group">
+                                    <input type="password" id="agentKeyInput" readonly value="••••••••••••••••••••••••">
+                                    <button type="button" class="ia-btn" onclick="toggleAgentKey()" title="Tampilkan/Sembunyikan">
+                                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                                    </button>
+                                    <button type="button" class="ia-btn" onclick="copyAgentKey()" title="Salin">
+                                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                    </button>
+                                    <button type="button" class="ia-btn" onclick="rotateAgentKey()" title="Buat Key Baru" style="color:var(--amber);">
+                                        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                                    </button>
+                                </div>
+                                <div style="font-size:11px; color:var(--muted); margin-top:6px;">⚠️ Rotate key akan menonaktifkan semua widget yang menggunakan key lama.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Agent Name</label>
+                                <input type="text" id="agentName" required autocomplete="off">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">Simpan Perubahan</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- AI Pane -->
+                <div class="settings-pane" id="sp-ai">
+                    <div class="card">
+                        <div class="card-title">Manage AI Model</div>
+                        <div class="card-desc">Hubungkan chatbot dengan AI LLM eksternal untuk mode RAG fallback.</div>
+
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-label">Aktifkan AI Engine</div>
+                                <div class="toggle-sub">Gunakan AI sebagai fallback ketika tidak ada intent yang cocok</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="aiEnabled">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <form id="formAI" onsubmit="saveAIForm(event)">
+                            <div class="form-row form-row-2">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label>AI Provider</label>
+                                    <select id="aiProvider" onchange="onProviderChange(this.value)">
+                                        <option value="gemini">Google Gemini</option>
+                                        <option value="openai">OpenAI (ChatGPT)</option>
+                                        <option value="anthropic">Anthropic (Claude)</option>
+                                        <option value="ollama">Ollama (Self-Hosted)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label id="modelLabel">Model Name</label>
+                                    <input type="text" id="aiModel" placeholder="Contoh: gemini-2.5-flash" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:16px;">
+                                <label id="keyLabel">API Key</label>
+                                <input type="password" id="aiApiKey" placeholder="Masukkan API Key..." autocomplete="new-password" data-lpignore="true" data-form-type="other">
+                                <div id="keyHelp" style="font-size:11px; color:var(--muted); margin-top:6px;"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>System Prompt</label>
+                                <textarea id="aiSystemPrompt" rows="4" placeholder="Contoh: Anda adalah asisten akademik dari Universitas XYZ..."></textarea>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+                                <div id="connStatus" class="conn-badge conn-idle"><div class="conn-dot"></div>Belum diuji</div>
+                                <button type="button" class="btn btn-ghost btn-sm" id="testConnBtn" onclick="testConnection()">
+                                    <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                                    Test Connection
+                                </button>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm">Simpan AI Config</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Appearance Pane -->
+                <div class="settings-pane" id="sp-appearance">
+                    <div class="card">
+                        <div class="card-title">Appearance & Branding</div>
+                        <div class="card-desc">Sesuaikan tampilan widget chatbot yang muncul di website Anda.</div>
+                        <form id="formAppearance" onsubmit="saveAppearanceForm(event)">
+                            <div class="form-row form-row-2">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Widget Title</label>
+                                    <input type="text" id="widgetTitle" autocomplete="off">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Welcome Text (Slogan)</label>
+                                    <input type="text" id="welcomeText" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-row form-row-2" style="margin-top:16px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Greeting Message</label>
+                                    <input type="text" id="greetingMsg" autocomplete="off">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Fallback Message</label>
+                                    <input type="text" id="fallbackMsg" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <!-- Custom Colors -->
+                            <div class="form-row form-row-2" style="margin-top:16px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Warna Utama (Primary Color)</label>
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <input type="color" id="primaryColor" style="width:48px; height:38px; padding:0; border:none; background:none; cursor:pointer;" value="#ff5a79">
+                                        <span style="font-size:12px; color:var(--muted-2);">Warna tombol kirim, balon chat user, dll.</span>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Warna Gradasi Balon (Gradient Color)</label>
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <input type="color" id="bubbleColor" style="width:48px; height:38px; padding:0; border:none; background:none; cursor:pointer;" value="#3b82f6">
+                                        <span style="font-size:12px; color:var(--muted-2);">Warna kedua untuk gradasi tombol launcher chat.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Icons -->
+                            <div class="form-row form-row-2" style="margin-top:16px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Icon Chatbot</label>
+                                    <select id="chatbotIconSelect" onchange="toggleIconCustomField(this.value)">
+                                        <option value="chat">💬 Balon Percakapan</option>
+                                        <option value="robot">🤖 Robot Pintar</option>
+                                        <option value="support">🎧 Layanan Dukungan</option>
+                                        <option value="academic">🎓 Akademik (Toga)</option>
+                                        <option value="custom">✍️ Custom Emoji / Karakter</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="chatbotIconCustomGroup" style="margin-bottom:0; display:none;">
+                                    <label>Custom Emoji atau Karakter</label>
+                                    <input type="text" id="chatbotIconCustom" maxlength="5" placeholder="Contoh: 🤖 atau 🎓" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div style="margin-top:20px;">
+                                <button type="submit" class="btn btn-primary btn-sm">Simpan Tampilan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- NLP Pane -->
+                <div class="settings-pane" id="sp-nlp">
+                    <div class="card">
+                        <div class="card-title">NLP Settings</div>
+                        <div class="card-desc">Konfigurasi sensitivitas pencocokan kata kunci lokal sebelum AI dipanggil.</div>
+                        <form id="formNlp" onsubmit="saveNlpForm(event)">
+                            <div class="form-group">
+                                <label>Similarity Threshold: <strong id="thresholdVal" style="color:var(--primary);">0.6</strong></label>
+                                <input type="range" id="nlpThreshold" min="0.3" max="0.95" step="0.05" value="0.6"
+                                    oninput="document.getElementById('thresholdVal').innerText=parseFloat(this.value).toFixed(2)"
+                                    style="padding:0; border:none; background:none; box-shadow:none; accent-color:var(--primary);">
+                                <div style="font-size:11px; color:var(--muted); margin-top:6px;">Nilai lebih tinggi = pencocokan lebih ketat. Nilai lebih rendah = lebih luwes tapi mungkin tidak akurat.</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Bahasa</label>
+                                <select id="nlpLang">
+                                    <option value="id">Bahasa Indonesia</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <div class="toggle-row" style="margin-bottom:12px;">
+                                <div class="toggle-info">
+                                    <div class="toggle-label">Aktifkan Stemming</div>
+                                    <div class="toggle-sub">Normalisasi kata kerja (berlari → lari)</div>
+                                </div>
+                                <label class="switch"><input type="checkbox" id="nlpStemming" checked><span class="slider"></span></label>
+                            </div>
+                            <div class="toggle-row">
+                                <div class="toggle-info">
+                                    <div class="toggle-label">Hapus Stop Words</div>
+                                    <div class="toggle-sub">Abaikan kata umum (yang, dan, di, ke...)</div>
+                                </div>
+                                <label class="switch"><input type="checkbox" id="nlpStopWords" checked><span class="slider"></span></label>
+                            </div>
+                            <div style="margin-top:16px;">
+                                <button type="submit" class="btn btn-primary btn-sm">Simpan NLP Config</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="settings-pane" id="sp-danger">
+                    <div class="card">
+                        <div class="danger-zone">
+                            <div class="danger-title">⚠️ Danger Zone</div>
+                            <div class="danger-desc">Menghapus chatbot ini akan menghapus semua konfigurasi, dokumen, basis pengetahuan, dan intents secara permanen.</div>
+                            <button class="btn btn-danger btn-sm" onclick="openDeleteModal()">
+                                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                Hapus Chatbot Ini
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ===== MODAL: VIEW EXCERPTS ===== -->
+<div class="modal-overlay" id="modalExcerpts">
+    <div class="modal-box">
+        <div class="modal-hdr">
+            <div class="modal-hdr-title" id="excerptTitle">Ekstraksi Teks PDF</div>
+            <button class="modal-close" onclick="closeModal('modalExcerpts')">×</button>
+        </div>
+        <div id="excerptBody" style="display:flex; flex-direction:column; gap:10px; max-height:55vh; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- ===== MODAL: AUTO INTENTS ===== -->
+<div class="modal-overlay" id="modalAutoIntents">
+    <div class="modal-box" style="max-width:700px;">
+        <div class="modal-hdr">
+            <div class="modal-hdr-title">Rekomendasi Intent Otomatis</div>
+            <button class="modal-close" onclick="closeModal('modalAutoIntents')">×</button>
+        </div>
+        <p class="text-muted" style="margin-bottom:16px;">Tinjau dan simpan rekomendasi di bawah ini ke database intents.</p>
+        <div id="autoIntentsBody"></div>
+    </div>
+</div>
+
+<!-- ===== MODAL: DELETE CHATBOT ===== -->
+<div class="modal-overlay" id="modalDeleteBot">
+    <div class="modal-box" style="max-width:480px;">
+        <div class="modal-hdr">
+            <div class="modal-hdr-title" style="color:#f87171;">Hapus Chatbot</div>
+            <button class="modal-close" onclick="closeModal('modalDeleteBot')">×</button>
+        </div>
+        <p style="font-size:14px; color:var(--muted-2); line-height:1.6; margin-bottom:18px;">
+            Tindakan ini <strong style="color:var(--red);">tidak bisa dibatalkan</strong>. Semua data chatbot termasuk dokumen, intents, dan konfigurasi akan dihapus permanen.
+        </p>
+        <div class="form-group">
+            <label>Ketik nama chatbot untuk konfirmasi: <strong id="deleteBotNameHint" style="color:var(--text);"></strong></label>
+            <input type="text" id="deleteConfirmInput" placeholder="Nama chatbot..." autocomplete="off">
+        </div>
+        <button class="btn btn-danger btn-full" id="confirmDeleteBtn" onclick="confirmDeleteBot()">Hapus Permanen</button>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const API = '/api';
+const urlP = new URLSearchParams(window.location.search);
+const chatbotId = urlP.get('chatbotId');
+const token = localStorage.getItem('aethel_token');
+
+// ── Theme management ─────────────────────────────────────
+function applyTheme(theme) {
+  const icon = document.getElementById('theme-icon');
+  const text = document.getElementById('theme-text');
+  const logoImg = document.querySelector('.logo img');
+  
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+    if (icon) {
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+      icon.style.fill = 'none';
+      icon.setAttribute('stroke', 'currentColor');
+      icon.setAttribute('stroke-width', '1.8');
+    }
+    if (text) text.textContent = 'Dark Mode';
+    if (logoImg) logoImg.src = '/logo-light.png';
+  } else {
+    document.body.classList.remove('light-theme');
+    if (icon) {
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      icon.style.fill = 'currentColor';
+      icon.removeAttribute('stroke');
+    }
+    if (text) text.textContent = 'Light Mode';
+    if (logoImg) logoImg.src = '/logo.png';
+  }
+}
+
+function toggleTheme(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const currentTheme = localStorage.getItem('aethel_theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('aethel_theme', newTheme);
+  applyTheme(newTheme);
+}
+
+// Apply stored theme on load
+applyTheme(localStorage.getItem('aethel_theme') || 'dark');
+
+if (!chatbotId || !token) window.location.href = '/index.html';
+
+const user = JSON.parse(localStorage.getItem('aethel_user') || '{}');
+document.getElementById('userAvatar').innerText = (user.name || 'U').charAt(0).toUpperCase();
+document.getElementById('userName').innerText = user.name || 'User';
+document.getElementById('userEmail').innerText = user.email || '';
+document.getElementById('logoutBtn').onclick = () => {
+    localStorage.clear();
+    window.location.href = '/login.html';
+};
+
+let botConfig = {};
+let rawAgentKey = '';
+let allIntents = [];
+
+// ===== TABS =====
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tab}`));
+}
+function switchKbPane(p) {
+    document.querySelectorAll('.kb-nav-item').forEach(i => i.classList.toggle('active', i.id === `kbn-${p}`));
+    document.querySelectorAll('.kb-pane').forEach(x => x.classList.toggle('active', x.id === `kbp-${p}`));
+}
+function switchSettingsPane(p) {
+    document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.toggle('active', i.id === `sn-${p}`));
+    document.querySelectorAll('.settings-pane').forEach(x => x.classList.toggle('active', x.id === `sp-${p}`));
+}
+function switchIntTab(t) {
+    document.querySelectorAll('.int-tab').forEach(x => x.classList.toggle('active', x.innerText.toLowerCase() === t || (t==='html' && x.innerText==='HTML') || (t==='wordpress' && x.innerText==='WordPress') || (t==='react' && x.innerText.includes('React'))));
+    document.querySelectorAll('.int-panel').forEach(x => x.classList.toggle('active', x.id === `intp-${t}`));
+}
+
+// ===== TOAST =====
+function toast(msg, type = 'info') {
+    const w = document.getElementById('toastWrap');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerText = msg;
+    w.appendChild(t);
+    setTimeout(() => {
+        t.style.animation = 'toastOut 0.3s forwards';
+        setTimeout(() => t.remove(), 300);
+    }, 3500);
+}
+
+// ===== MODAL =====
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ===== LOAD CONFIG =====
+async function loadConfig() {
+    try {
+        const res = await fetch(`${API}/chatbots/${chatbotId}/config`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) { window.location.href = '/login.html'; return; }
+        botConfig = await res.json();
+        rawAgentKey = botConfig.agentKey;
+
+        document.getElementById('bcBot').innerText = botConfig.name;
+        document.getElementById('simTitle').innerText = `${botConfig.name} — Simulator`;
+        document.getElementById('agentName').value = botConfig.name;
+
+        // AI
+        document.getElementById('aiEnabled').checked = !!botConfig.aiEnabled;
+        document.getElementById('aiProvider').value = botConfig.aiProvider || 'gemini';
+        document.getElementById('aiModel').value = botConfig.aiModel || '';
+        document.getElementById('aiApiKey').value = botConfig.aiApiKey || '';
+        document.getElementById('aiSystemPrompt').value = botConfig.aiSystemPrompt || '';
+        onProviderChange(botConfig.aiProvider || 'gemini');
+
+        // Appearance
+        if (botConfig.branding) {
+            document.getElementById('widgetTitle').value = botConfig.branding.widgetTitle || '';
+            document.getElementById('welcomeText').value = botConfig.branding.welcomeText || '';
+            document.getElementById('greetingMsg').value = botConfig.branding.greetingMessage || '';
+            document.getElementById('fallbackMsg').value = botConfig.branding.fallbackMessage || '';
+            document.getElementById('primaryColor').value = botConfig.branding.primaryColor || '#ff5a79';
+            document.getElementById('bubbleColor').value = botConfig.branding.bubbleColor || '#3b82f6';
+            
+            const iconVal = botConfig.branding.chatbotIcon || 'chat';
+            const predefined = ['chat', 'robot', 'support', 'academic'];
+            if (predefined.includes(iconVal)) {
+                document.getElementById('chatbotIconSelect').value = iconVal;
+                document.getElementById('chatbotIconCustomGroup').style.display = 'none';
+                document.getElementById('chatbotIconCustom').value = '';
+            } else {
+                document.getElementById('chatbotIconSelect').value = 'custom';
+                document.getElementById('chatbotIconCustomGroup').style.display = 'block';
+                document.getElementById('chatbotIconCustom').value = iconVal;
+            }
+        }
+
+        // NLP
+        if (botConfig.nlp) {
+            const nlp = botConfig.nlp;
+            const th = parseFloat(nlp.similarityThreshold) || 0.6;
+            document.getElementById('nlpThreshold').value = th;
+            document.getElementById('thresholdVal').innerText = th.toFixed(2);
+            document.getElementById('nlpLang').value = nlp.language || 'id';
+            document.getElementById('nlpStemming').checked = !!nlp.stemmingEnabled;
+            document.getElementById('nlpStopWords').checked = !!nlp.stopWordsEnabled;
+        }
+
+        // Engine status
+        const providerNames = { gemini:'Google Gemini', openai:'OpenAI', anthropic:'Anthropic Claude', ollama:'Ollama (Self-Hosted)' };
+        const pName = providerNames[botConfig.aiProvider] || 'Local NLP';
+        const es = document.getElementById('engineStatus');
+        if (botConfig.aiEnabled && botConfig.aiProvider) {
+            es.innerHTML = `<div class="conn-badge conn-ok"><div class="conn-dot"></div>${pName} — Active</div>`;
+        } else {
+            es.innerHTML = `<div class="conn-badge conn-idle"><div class="conn-dot"></div>Local NLP — No AI</div>`;
+        }
+
+        // Snippets
+        buildSnippets();
+    } catch (e) { console.error(e); }
+}
+
+function buildSnippets() {
+    const host = window.location.origin;
+    const key = rawAgentKey;
+    const html = `<script>\n(function(w,d){\n  var s=d.createElement("script");\n  s.src="${host}/widget.js";\n  s.async=1;\n  s.onload=function(){ w.ChatAgentive.init({apiHost:"${host}",agentKey:"${key}"}) };\n  d.head.appendChild(s);\n})(window,document);\n<\/script>`;
+    const wp = `// Tambahkan di functions.php theme WordPress Anda:\nfunction chatagentive_widget() { ?>\n${html}\n<?php }\nadd_action('wp_head','chatagentive_widget');`;
+    const react = `// Di komponen Next.js/React Anda:\nimport { useEffect } from 'react';\n\nexport default function ChatWidget() {\n  useEffect(() => {\n    const s = document.createElement('script');\n    s.src = '${host}/widget.js';\n    s.async = true;\n    s.onload = () => window.ChatAgentive?.init({ apiHost: '${host}', agentKey: '${key}' });\n    document.head.appendChild(s);\n    return () => document.head.removeChild(s);\n  }, []);\n  return null;\n}`;
+
+    document.getElementById('snippetHtml').innerText = html;
+    document.getElementById('snippetWp').innerText = wp;
+    document.getElementById('snippetReact').innerText = react;
+}
+
+function copySnippet(type) {
+    const map = { html: 'snippetHtml', wordpress: 'snippetWp', react: 'snippetReact' };
+    navigator.clipboard.writeText(document.getElementById(map[type]).innerText);
+    toast('Snippet berhasil disalin!', 'success');
+}
+
+// ===== AGENT KEY =====
+let keyVisible = false;
+function toggleAgentKey() {
+    keyVisible = !keyVisible;
+    const inp = document.getElementById('agentKeyInput');
+    inp.type = keyVisible ? 'text' : 'password';
+    inp.value = keyVisible ? rawAgentKey : '••••••••••••••••••••••••';
+}
+function copyAgentKey() {
+    navigator.clipboard.writeText(rawAgentKey);
+    toast('Agent Key disalin!', 'success');
+}
+async function rotateAgentKey() {
+    if (!confirm('Rotate key akan menonaktifkan semua widget yang menggunakan key lama. Lanjutkan?')) return;
+    const res = await fetch(`${API}/chatbots/${chatbotId}/config/rotate-key`, { method:'POST', headers:{Authorization:`Bearer ${token}`} });
+    if (res.ok) { toast('Agent Key baru dibuat!', 'success'); await loadConfig(); }
+    else toast('Gagal rotate key', 'error');
+}
+
+// ===== SAVE FORMS =====
+async function saveSettings(fields) {
+    const res = await fetch(`${API}/chatbots/${chatbotId}/config`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+        body: JSON.stringify(fields)
+    });
+    if (res.ok) { toast('Pengaturan disimpan!', 'success'); await loadConfig(); }
+    else { const e = await res.json(); toast(e.error || 'Gagal menyimpan', 'error'); }
+}
+async function saveConfigForm(e) {
+    e.preventDefault();
+    await saveSettings({ name: document.getElementById('agentName').value });
+}
+async function saveAIForm(e) {
+    e.preventDefault();
+    const aiApiKey = document.getElementById('aiApiKey').value;
+    const fields = {
+        aiEnabled: document.getElementById('aiEnabled').checked,
+        aiProvider: document.getElementById('aiProvider').value,
+        aiModel: document.getElementById('aiModel').value,
+        aiSystemPrompt: document.getElementById('aiSystemPrompt').value
+    };
+    if (aiApiKey && aiApiKey !== '****************') fields.aiApiKey = aiApiKey;
+    await saveSettings(fields);
+}
+function toggleIconCustomField(val) {
+    const group = document.getElementById('chatbotIconCustomGroup');
+    if (val === 'custom') {
+        group.style.display = 'block';
+    } else {
+        group.style.display = 'none';
+    }
+}
+
+async function saveAppearanceForm(e) {
+    e.preventDefault();
+    const iconSelect = document.getElementById('chatbotIconSelect').value;
+    const customIcon = document.getElementById('chatbotIconCustom').value;
+    const iconVal = iconSelect === 'custom' ? customIcon : iconSelect;
+
+    await saveSettings({ branding: {
+        widgetTitle: document.getElementById('widgetTitle').value,
+        welcomeText: document.getElementById('welcomeText').value,
+        greetingMessage: document.getElementById('greetingMsg').value,
+        fallbackMessage: document.getElementById('fallbackMsg').value,
+        primaryColor: document.getElementById('primaryColor').value,
+        bubbleColor: document.getElementById('bubbleColor').value,
+        chatbotIcon: iconVal
+    }});
+}
+async function saveNlpForm(e) {
+    e.preventDefault();
+    await saveSettings({ nlp: {
+        similarityThreshold: parseFloat(document.getElementById('nlpThreshold').value),
+        language: document.getElementById('nlpLang').value,
+        stemmingEnabled: document.getElementById('nlpStemming').checked ? 1 : 0,
+        stopWordsEnabled: document.getElementById('nlpStopWords').checked ? 1 : 0
+    }});
+}
+
+// ===== AI PROVIDER CHANGE =====
+function onProviderChange(provider) {
+    const keyLabel = document.getElementById('keyLabel');
+    const keyInput = document.getElementById('aiApiKey');
+    const keyHelp = document.getElementById('keyHelp');
+    const modelInput = document.getElementById('aiModel');
+    if (provider === 'ollama') {
+        keyLabel.innerText = 'Ollama Endpoint URL';
+        keyInput.type = 'text';
+        keyInput.placeholder = 'http://localhost:11434';
+        keyHelp.innerText = 'Kosongkan jika Ollama berjalan lokal di http://localhost:11434. Pastikan OLLAMA_HOST=0.0.0.0 jika ingin diakses dari jaringan lain.';
+        if (!modelInput.value) modelInput.value = 'qwen3.5:0.8b';
+    } else {
+        keyLabel.innerText = 'API Key';
+        keyInput.type = 'password';
+        keyInput.placeholder = 'Masukkan API Key...';
+        keyHelp.innerText = '';
+    }
+}
+
+// ===== TEST CONNECTION =====
+async function testConnection() {
+    const btn = document.getElementById('testConnBtn');
+    const status = document.getElementById('connStatus');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Testing...';
+    status.className = 'conn-badge conn-idle';
+    status.innerHTML = '<div class="conn-dot"></div>Menguji koneksi...';
+
+    const provider = document.getElementById('aiProvider').value;
+    const apiKey = document.getElementById('aiApiKey').value;
+    const model = document.getElementById('aiModel').value;
+
+    try {
+        const res = await fetch(`${API}/chatbots/${chatbotId}/test-ai`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ provider, apiKey, model })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            status.className = 'conn-badge conn-ok';
+            status.innerHTML = `<div class="conn-dot"></div>${data.provider} (${data.model || '—'}) — Terhubung`;
+            toast('Koneksi AI berhasil!', 'success');
+        } else {
+            status.className = 'conn-badge conn-fail';
+            status.innerHTML = `<div class="conn-dot"></div>Gagal: ${data.error || 'Unknown error'}`;
+            toast(data.error || 'Koneksi gagal', 'error');
+        }
+    } catch (e) {
+        status.className = 'conn-badge conn-fail';
+        status.innerHTML = '<div class="conn-dot"></div>Gagal terhubung';
+        toast('Error: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg> Test Connection';
+    }
+}
+
+// ===== DOCUMENTS =====
+let documentPollingTimer = null;
+
+async function loadDocuments() {
+    const res = await fetch(`${API}/chatbots/${chatbotId}/documents`, { headers: { Authorization: `Bearer ${token}` } });
+    const docs = await res.json();
+    const body = document.getElementById('docsBody');
+
+    if (!docs.length) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="5">Belum ada dokumen. Upload PDF di atas.</td></tr>';
+        return;
+    }
+
+    const hasProcessing = docs.some(d => d.status === 'processing');
+    if (documentPollingTimer) {
+        clearTimeout(documentPollingTimer);
+        documentPollingTimer = null;
+    }
+
+    body.innerHTML = docs.map(d => {
+        const size = (d.sizeBytes / 1024 / 1024).toFixed(2) + ' MB';
+        const date = new Date(d.uploadDate).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+        const badge = d.status === 'processed' 
+            ? '<span class="badge badge-green"><span class="badge-dot"></span>Processed</span>'
+            : d.status === 'failed' 
+                ? '<span class="badge badge-red"><span class="badge-dot"></span>Failed</span>'
+                : '<span class="badge badge-amber"><span class="badge-dot"></span>Processing</span>';
+        return `<tr>
+            <td style="font-weight:500;">📄 ${d.name}</td>
+            <td style="color:var(--muted)">${size}</td>
+            <td style="color:var(--muted)">${date}</td>
+            <td>${badge}</td>
+            <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <button class="btn btn-ghost btn-xs" onclick="openAutoIntents('${d.id}')">🤖 Suggest</button>
+                    <button class="btn btn-ghost btn-xs" onclick="viewExcerpts('${d.id}', '${d.name}')">👁 Lihat</button>
+                    <button class="btn btn-ghost btn-xs" onclick="reprocessDoc('${d.id}')">🔄</button>
+                    <button class="btn btn-danger btn-xs" onclick="deleteDoc('${d.id}')">🗑</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    if (hasProcessing) {
+        documentPollingTimer = setTimeout(loadDocuments, 3000);
+    }
+}
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') uploadPdf(file);
+    else toast('Hanya file PDF yang diperbolehkan', 'error');
+});
+document.getElementById('pdfInput').onchange = e => {
+    if (e.target.files[0]) uploadPdf(e.target.files[0]);
+};
+
+async function uploadPdf(file) {
+    if (file.size > 10 * 1024 * 1024) { toast('File terlalu besar (maks 10MB)', 'error'); return; }
+    const prog = document.getElementById('uploadProgress');
+    const bar = document.getElementById('progressBar');
+    prog.classList.add('show');
+    bar.style.width = '20%';
+
+    const fd = new FormData();
+    fd.append('pdf', file);
+
+    try {
+        bar.style.width = '60%';
+        const res = await fetch(`${API}/chatbots/${chatbotId}/documents`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: fd
+        });
+        bar.style.width = '100%';
+        if (res.ok) {
+            toast('PDF berhasil diunggah! Ekstraksi sedang berjalan...', 'success');
+            setTimeout(() => { prog.classList.remove('show'); bar.style.width = '0%'; }, 800);
+            setTimeout(loadDocuments, 2500);
+        } else {
+            const err = await res.json();
+            toast(err.error || 'Gagal upload', 'error');
+            prog.classList.remove('show');
+        }
+    } catch (e) {
+        toast('Koneksi error: ' + e.message, 'error');
+        prog.classList.remove('show');
+    }
+}
+
+async function reprocessDoc(id) {
+    toast('Mengekstrak ulang...', 'info');
+    const res = await fetch(`${API}/chatbots/${chatbotId}/documents/${id}/reprocess`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) { toast('Reprocess selesai!', 'success'); loadDocuments(); }
+    else toast('Reprocess gagal', 'error');
+}
+
+async function deleteDoc(id) {
+    if (!confirm('Hapus dokumen ini dan semua ekstraksinya?')) return;
+    const res = await fetch(`${API}/chatbots/${chatbotId}/documents/${id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) { toast('Dokumen dihapus', 'success'); loadDocuments(); }
+    else toast('Gagal hapus dokumen', 'error');
+}
+
+async function viewExcerpts(id, name) {
+    const res = await fetch(`${API}/chatbots/${chatbotId}/documents/${id}/text`, { headers: { Authorization: `Bearer ${token}` } });
+    const excerpts = await res.json();
+    document.getElementById('excerptTitle').innerText = `Teks: ${name}`;
+    const body = document.getElementById('excerptBody');
+    if (!excerpts.length) {
+        body.innerHTML = '<p class="text-muted text-center">Tidak ada teks yang diekstrak.</p>';
+    } else {
+        body.innerHTML = excerpts.map((e, i) => `
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border); border-radius:8px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--primary); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">
+                    <span>Paragraf #${i+1}</span><span>Hal. ${e.pageNumber}</span>
+                </div>
+                <p style="font-size:13px; line-height:1.6; color:var(--muted-2);">${e.content}</p>
+            </div>`).join('');
+    }
+    openModal('modalExcerpts');
+}
+
+async function openAutoIntents(id) {
+    toast('Menganalisis konten...', 'info');
+    const res = await fetch(`${API}/chatbots/${chatbotId}/documents/${id}/auto-intents`, { headers: { Authorization: `Bearer ${token}` } });
+    const generated = await res.json();
+    const body = document.getElementById('autoIntentsBody');
+    if (!generated.length) {
+        body.innerHTML = '<p class="text-muted text-center">Tidak ada pola Q&A terdeteksi.</p>';
+    } else {
+        body.innerHTML = generated.map((intent, idx) => `
+            <div class="intent-suggestion" id="ais-${idx}">
+                <div style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:10px;">
+                    Saran #${idx+1} — Hal. ${intent.sourceRef.pageNumber}
+                </div>
+                <div class="form-row form-row-2">
+                    <div><label>Kategori</label><input type="text" id="aic-${idx}" value="${intent.category}" style="font-size:12px;padding:8px;"></div>
+                    <div><label>Kata Kunci</label><input type="text" id="aik-${idx}" value="${intent.keywords.join(', ')}" style="font-size:12px;padding:8px;"></div>
+                </div>
+                <div><label>Respons</label><textarea id="air-${idx}" rows="2" style="font-size:12px;padding:8px;">${intent.response}</textarea></div>
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="btn btn-primary btn-xs" onclick="acceptAutoIntent(${idx})">✅ Simpan</button>
+                    <button class="btn btn-danger btn-xs" onclick="document.getElementById('ais-${idx}').remove()">❌ Tolak</button>
+                </div>
+            </div>`).join('');
+    }
+    openModal('modalAutoIntents');
+}
+
+async function acceptAutoIntent(idx) {
+    const category = document.getElementById(`aic-${idx}`).value;
+    const keywords = document.getElementById(`aik-${idx}`).value;
+    const response = document.getElementById(`air-${idx}`).value;
+    const res = await fetch(`${API}/chatbots/${chatbotId}/intents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ category, keywords, response })
+    });
+    if (res.ok) {
+        document.getElementById(`ais-${idx}`).classList.add('accepted');
+        toast('Intent disimpan!', 'success');
+        loadIntents();
+    }
+}
+
+// ===== INTENTS =====
+async function loadIntents() {
+    const res = await fetch(`${API}/chatbots/${chatbotId}/intents`, { headers: { Authorization: `Bearer ${token}` } });
+    allIntents = await res.json();
+    const cats = ['all', ...new Set(allIntents.map(i => i.category || 'General'))];
+    document.getElementById('intentFilter').innerHTML = cats.map(c => `<option value="${c}">${c === 'all' ? 'Semua' : c}</option>`).join('');
+    renderIntents(allIntents);
+}
+function renderIntents(intents) {
+    const body = document.getElementById('intentsBody');
+    if (!intents.length) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="4">Belum ada intent manual.</td></tr>';
+        return;
+    }
+    body.innerHTML = intents.map(i => `
+        <tr>
+            <td><span class="badge badge-amber">${i.category}</span></td>
+            <td style="color:var(--primary);font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.keywords.join(', ')}</td>
+            <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted-2)">${i.response}</td>
+            <td><div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-xs" onclick="editIntent(${i.id})">✏️</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteIntent(${i.id})">🗑</button>
+            </div></td>
+        </tr>`).join('');
+}
+function filterIntents(cat) {
+    renderIntents(cat === 'all' ? allIntents : allIntents.filter(i => i.category === cat));
+}
+document.getElementById('intentForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('intentEditId').value;
+    const url = editId ? `${API}/chatbots/${chatbotId}/intents/${editId}` : `${API}/chatbots/${chatbotId}/intents`;
+    const method = editId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+            category: document.getElementById('intentCat').value || 'General',
+            keywords: document.getElementById('intentKeys').value,
+            response: document.getElementById('intentResp').value
+        })
+    });
+    if (res.ok) { toast(editId ? 'Intent diperbarui' : 'Intent ditambah!', 'success'); resetIntentForm(); loadIntents(); }
+};
+function resetIntentForm() {
+    document.getElementById('intentForm').reset();
+    document.getElementById('intentEditId').value = '';
+}
+function editIntent(id) {
+    const i = allIntents.find(x => x.id === id);
+    if (!i) return;
+    document.getElementById('intentEditId').value = i.id;
+    document.getElementById('intentCat').value = i.category;
+    document.getElementById('intentKeys').value = i.keywords.join(', ');
+    document.getElementById('intentResp').value = i.response;
+    switchKbPane('intents');
+    document.getElementById('intentCat').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+async function deleteIntent(id) {
+    if (!confirm('Hapus intent ini?')) return;
+    const res = await fetch(`${API}/chatbots/${chatbotId}/intents/${id}`, { method:'DELETE', headers:{Authorization:`Bearer ${token}`} });
+    if (res.ok) { toast('Intent dihapus', 'success'); loadIntents(); }
+}
+
+// ===== SIMULATOR =====
+function clearSimulator() {
+    document.getElementById('simMsgs').innerHTML = '';
+}
+function formatTime() {
+    return new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+function addSimMsg(text, isUser, sourceInfo) {
+    const box = document.getElementById('simMsgs');
+    const el = document.createElement('div');
+    el.className = 'sim-msg ' + (isUser ? 'user' : 'bot');
+    if (!isUser && sourceInfo) {
+        if (sourceInfo.source === 'knowledge_base') {
+            el.classList.add('kb-source');
+            el.innerHTML = `<span class="sim-source-badge" style="background:rgba(16,185,129,0.15);color:#34d399;">📚 PDF Match</span><div>${text}</div><small style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">📄 ${sourceInfo.filename} — Hal. ${sourceInfo.pageNumber}</small>`;
+        } else if (sourceInfo.source === 'ai_llm') {
+            el.classList.add('ai-source');
+            el.innerHTML = `<span class="sim-source-badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;">🤖 AI Model</span><div>${text}</div>`;
+            if (sourceInfo.filename) el.innerHTML += `<small style="font-size:10px;color:var(--muted);margin-top:4px;display:block;">📄 Ref: ${sourceInfo.filename} — Hal. ${sourceInfo.pageNumber}</small>`;
+        } else {
+            el.innerText = text;
+        }
+    } else {
+        el.innerText = text;
+    }
+    el.innerHTML += `<span class="sim-ts">${formatTime()}</span>`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+}
+function addTyping() {
+    const box = document.getElementById('simMsgs');
+    const el = document.createElement('div');
+    el.id = 'simTyping';
+    el.className = 'typing-dots';
+    el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+}
+function removeTyping() { const t = document.getElementById('simTyping'); if(t) t.remove(); }
+
+async function sendSimMessage() {
+    const input = document.getElementById('simInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    addSimMsg(msg, true);
+    input.value = '';
+    addTyping();
+    try {
+        const res = await fetch(`${API}/chatbots/${chatbotId}/chat`, {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ message: msg })
+        });
+        const data = await res.json();
+        removeTyping();
+        addSimMsg(data.response, false, data.found ? { source:data.source, filename:data.filename, pageNumber:data.pageNumber } : null);
+    } catch(e) { removeTyping(); addSimMsg('Koneksi error. Coba lagi.', false); }
+}
+document.getElementById('simInput').addEventListener('keydown', e => { if(e.key === 'Enter') sendSimMessage(); });
+
+// ===== DELETE CHATBOT =====
+function openDeleteModal() {
+    document.getElementById('deleteBotNameHint').innerText = botConfig.name;
+    document.getElementById('deleteConfirmInput').value = '';
+    openModal('modalDeleteBot');
+}
+async function confirmDeleteBot() {
+    const typed = document.getElementById('deleteConfirmInput').value.trim();
+    if (typed !== botConfig.name) { toast('Nama chatbot tidak cocok', 'error'); return; }
+    const res = await fetch(`${API}/chatbots/${chatbotId}`, { method:'DELETE', headers:{Authorization:`Bearer ${token}`} });
+    if (res.ok) { window.location.href = '/index.html'; }
+    else toast('Gagal menghapus chatbot', 'error');
+}
+
+// ===== INIT =====
+loadConfig();
+loadDocuments();
+loadIntents();
+</script>
+</body>
+</html>

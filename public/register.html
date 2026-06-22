@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — Aethel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── CSS Reset & Base ─── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:        hsl(222, 47%, 5%);
+      --primary:   hsl(348, 100%, 67%);
+      --accent:    hsl(25,  100%, 63%);
+      --glass-bg:  hsla(220, 40%, 12%, 0.7);
+      --glass-brd: hsla(220, 40%, 60%, 0.12);
+      --input-bg:  hsla(222, 50%, 8%, 0.85);
+      --text:      hsl(210, 40%, 96%);
+      --muted:     hsl(215, 20%, 55%);
+      --err-bg:    hsla(0, 85%, 60%, 0.12);
+      --err-brd:   hsla(0, 85%, 60%, 0.3);
+      --err-txt:   hsl(0, 90%, 72%);
+      --success-bg:  hsla(142, 70%, 45%, 0.12);
+      --success-brd: hsla(142, 70%, 45%, 0.3);
+      --success-txt: hsl(142, 70%, 60%);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Floating Orbs ─── */
+    .orb-field {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      animation: floatOrb var(--dur) ease-in-out infinite alternate;
+    }
+    .orb-1 {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, hsl(348,100%,65%), transparent 70%);
+      top: -160px; left: -140px;
+      --dur: 9s;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, hsl(255,80%,60%), transparent 70%);
+      bottom: -120px; right: -100px;
+      --dur: 12s;
+      animation-delay: -4s;
+    }
+    .orb-3 {
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, hsl(25,100%,62%), transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      --dur: 15s;
+      animation-delay: -7s;
+      opacity: 0.18;
+    }
+    .orb-4 {
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, hsl(190,90%,50%), transparent 70%);
+      top: 20%; right: 20%;
+      --dur: 11s;
+      animation-delay: -2s;
+      opacity: 0.20;
+    }
+
+    @keyframes floatOrb {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, 40px) scale(1.08); }
+    }
+
+    /* ─── Layout ─── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: 100vh;
+      width: 100vw;
+    }
+
+    /* ─── LEFT PANEL ─── */
+    .left-panel {
+      flex: 0 0 48%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 64px 56px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        hsla(348,100%,10%,0.55) 0%,
+        hsla(222,47%,8%,0.20) 100%);
+      border-right: 1px solid var(--glass-brd);
+      backdrop-filter: blur(4px);
+    }
+
+    .left-content { position: relative; z-index: 1; }
+
+    /* Logo */
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+    .logo-mark {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 8px 32px hsla(348,100%,50%,0.4);
+      flex-shrink: 0;
+    }
+    .brand-name {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+    .brand-name span {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Hero */
+    .hero-heading {
+      font-size: clamp(30px, 3.5vw, 46px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #fff 30%, hsl(348,100%,80%));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 340px;
+      margin-bottom: 48px;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 44px;
+    }
+    .stat-item { text-align: left; }
+    .stat-number {
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Features */
+    .features { display: flex; flex-direction: column; gap: 18px; }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .feature-icon {
+      width: 40px; height: 40px;
+      border-radius: 11px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-brd);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+      backdrop-filter: blur(8px);
+    }
+    .feature-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 1px;
+    }
+    .feature-text p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ─── RIGHT PANEL ─── */
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 48px 64px;
+      overflow-y: auto;
+    }
+
+    /* Card */
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-brd);
+      border-radius: 24px;
+      padding: 44px 40px;
+      box-shadow:
+        0 2px 0 hsla(220,40%,60%,0.06) inset,
+        0 32px 80px hsla(0,0%,0%,0.45),
+        0 0 0 1px hsla(0,0%,100%,0.04) inset;
+      animation: cardFadeIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+      margin: auto 0; /* vertically center if shorter than viewport */
+    }
+
+    @keyframes cardFadeIn {
+      from { opacity: 0; transform: translateY(28px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Card header */
+    .card-header { margin-bottom: 28px; }
+    .card-header h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .card-header p {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* Form groups */
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .form-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 9px;
+    }
+    .form-group label .lbl-icon { font-size: 13px; }
+
+    /* Inputs */
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--glass-brd);
+      border-radius: 12px;
+      padding: 13px 16px;
+      padding-right: 46px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+    .input-wrap input::placeholder { color: hsl(215,15%,38%); }
+    .input-wrap input:focus {
+      border-color: var(--primary);
+      background: hsla(222, 50%, 10%, 0.95);
+      box-shadow:
+        0 0 0 3px hsla(348,100%,67%,0.18),
+        0 0 20px hsla(348,100%,67%,0.08);
+    }
+    .input-wrap input:not(:placeholder-shown):not(:focus):valid {
+      border-color: hsla(142,70%,45%,0.45);
+    }
+
+    /* Toggle password */
+    .toggle-pw {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      transition: color 0.2s;
+      z-index: 2;
+    }
+    .toggle-pw:hover { color: var(--text); }
+
+    /* ─── Password Strength ─── */
+    .strength-wrap {
+      margin-top: 10px;
+    }
+    .strength-bars {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 6px;
+    }
+    .strength-bar {
+      flex: 1;
+      height: 4px;
+      border-radius: 99px;
+      background: hsla(220,30%,30%,0.5);
+      transition: background 0.35s ease;
+    }
+    .strength-bar.weak   { background: hsl(0,80%,58%); }
+    .strength-bar.fair   { background: hsl(35,90%,58%); }
+    .strength-bar.good   { background: hsl(200,80%,55%); }
+    .strength-bar.strong { background: hsl(142,65%,50%); }
+
+    .strength-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.3s;
+    }
+    .strength-label.weak   { color: hsl(0,80%,68%); }
+    .strength-label.fair   { color: hsl(35,90%,65%); }
+    .strength-label.good   { color: hsl(200,80%,65%); }
+    .strength-label.strong { color: hsl(142,65%,60%); }
+
+    /* ─── Alert ─── */
+    .alert-box {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      border: 1px solid;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert-box.error {
+      background: var(--err-bg);
+      border-color: var(--err-brd);
+      color: var(--err-txt);
+    }
+    .alert-box.success {
+      background: var(--success-bg);
+      border-color: var(--success-brd);
+      color: var(--success-txt);
+    }
+    .alert-box.show {
+      display: flex;
+      animation: alertIn 0.3s ease;
+    }
+    .alert-box.shake {
+      animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    @keyframes alertIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shake {
+      10%, 90%  { transform: translateX(-3px); }
+      20%, 80%  { transform: translateX(5px);  }
+      30%, 70%  { transform: translateX(-5px); }
+      40%, 60%  { transform: translateX(5px);  }
+      50%       { transform: translateX(-3px); }
+    }
+
+    .alert-icon { font-size: 16px; flex-shrink: 0; }
+    .alert-text { flex: 1; line-height: 1.4; }
+
+    /* ─── Submit Button ─── */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      box-shadow: 0 4px 20px hsla(348,100%,50%,0.35);
+      transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, hsla(0,0%,100%,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-submit:hover:not(:disabled)::before { opacity: 1; }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px hsla(348,100%,50%,0.45);
+    }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.75; cursor: not-allowed; }
+
+    /* Spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid hsla(0,0%,100%,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-spinner { display: none; align-items: center; gap: 10px; }
+
+    /* Terms note */
+    .terms-note {
+      margin-top: 14px;
+      font-size: 11.5px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+    .terms-note a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .terms-note a:hover { text-decoration: underline; }
+
+    /* Footer */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--glass-brd);
+    }
+    .card-footer {
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    .card-footer a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .card-footer a:hover { opacity: 0.8; text-decoration: underline; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 860px) {
+      .wrapper { flex-direction: column; }
+      .left-panel {
+        flex: 0 0 auto;
+        position: relative;
+        height: auto;
+        padding: 40px 32px 36px;
+        align-items: center;
+        text-align: center;
+      }
+      .left-panel::before { border-right: none; border-bottom: 1px solid var(--glass-brd); }
+      .hero-sub { max-width: 100%; }
+      .stats-row { justify-content: center; }
+      .features { align-items: flex-start; }
+      .right-panel { padding: 36px 24px 56px; }
+    }
+    @media (max-width: 480px) {
+      .auth-card { padding: 32px 22px; border-radius: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating orbs -->
+  <div class="orb-field" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+  </div>
+
+  <div class="wrapper">
+
+    <!-- ══ LEFT BRANDING PANEL ══ -->
+    <aside class="left-panel" aria-label="Branding">
+      <div class="left-content">
+
+        <!-- Brand -->
+        <div class="brand-logo">
+          <img src="/logo.png" alt="Aethel Logo" class="logo-mark" style="background: none; box-shadow: 0 8px 24px hsla(348,100%,50%,0.2); object-fit: cover;" />
+          <div class="brand-name">
+            Aethel
+            <span>Smart Chatbot Platform</span>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <h1 class="hero-heading">Start Building<br>For Free<br>Today.</h1>
+        <p class="hero-sub">
+          Join thousands of teams who use Aethel to create AI chatbots that actually understand their users.
+        </p>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-number">12K+</div>
+            <div class="stat-label">Active Users</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">98%</div>
+            <div class="stat-label">Uptime SLA</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">4.9★</div>
+            <div class="stat-label">User Rating</div>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+          <div class="feature-item">
+            <div class="feature-icon">🚀</div>
+            <div class="feature-text">
+              <strong>Free to Start</strong>
+              <p>No credit card required</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🧠</div>
+            <div class="feature-text">
+              <strong>Smart AI Training</strong>
+              <p>Train with your own knowledge base</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">📊</div>
+            <div class="feature-text">
+              <strong>Real-time Analytics</strong>
+              <p>Track every conversation & insight</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ══ RIGHT FORM PANEL ══ -->
+    <main class="right-panel">
+      <div class="auth-card">
+
+        <div class="card-header">
+          <h2>Create your account ✨</h2>
+          <p>Get started with Aethel for free</p>
+        </div>
+
+        <!-- Alert -->
+        <div id="alertBox" class="alert-box error" role="alert" aria-live="assertive">
+          <span class="alert-icon" id="alertIcon">⚠️</span>
+          <span class="alert-text" id="alertText"></span>
+        </div>
+
+        <form id="registerForm" novalidate autocomplete="on">
+
+          <!-- Full name -->
+          <div class="form-group">
+            <label for="name">
+              <span class="lbl-icon">👤</span> Full Name
+            </label>
+            <div class="input-wrap">
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Your name"
+                autocomplete="name"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="email">
+              <span class="lbl-icon">✉️</span> Email Address
+            </label>
+            <div class="input-wrap">
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label for="password">
+              <span class="lbl-icon">🔑</span> Password
+            </label>
+            <div class="input-wrap">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Create a strong password"
+                autocomplete="new-password"
+                required
+              />
+              <button type="button" class="toggle-pw" id="togglePw" aria-label="Toggle password visibility">
+                <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  style="display:none;">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Password strength -->
+            <div class="strength-wrap" id="strengthWrap" style="display:none;">
+              <div class="strength-bars">
+                <div class="strength-bar" id="bar1"></div>
+                <div class="strength-bar" id="bar2"></div>
+                <div class="strength-bar" id="bar3"></div>
+                <div class="strength-bar" id="bar4"></div>
+              </div>
+              <div class="strength-label" id="strengthLabel">Too short</div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span class="btn-text">Create Account</span>
+            <span class="btn-spinner" id="btnSpinner">
+              <div class="spinner"></div>
+              Creating account…
+            </span>
+          </button>
+
+          <p class="terms-note">
+            By registering you agree to our
+            <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          </p>
+
+        </form>
+
+        <div class="divider">or</div>
+
+        <div class="card-footer">
+          Already have an account? <a href="/login.html">Sign in →</a>
+        </div>
+
+      </div>
+    </main>
+
+  </div><!-- .wrapper -->
+
+  <script>
+    /* ─── Password toggle ─── */
+    const pwInput   = document.getElementById('password');
+    const toggleBtn = document.getElementById('togglePw');
+    const eyeOpen   = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
+
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = pwInput.type === 'password';
+      pwInput.type = isHidden ? 'text' : 'password';
+      eyeOpen.style.display   = isHidden ? 'none' : '';
+      eyeClosed.style.display = isHidden ? ''     : 'none';
+    });
+
+    /* ─── Password strength ─── */
+    const strengthWrap  = document.getElementById('strengthWrap');
+    const strengthLabel = document.getElementById('strengthLabel');
+    const bars = [
+      document.getElementById('bar1'),
+      document.getElementById('bar2'),
+      document.getElementById('bar3'),
+      document.getElementById('bar4'),
+    ];
+
+    const STRENGTH_LEVELS = [
+      { label: 'Too weak',   cls: 'weak',   filled: 1 },
+      { label: 'Fair',       cls: 'fair',   filled: 2 },
+      { label: 'Good',       cls: 'good',   filled: 3 },
+      { label: 'Strong 💪',  cls: 'strong', filled: 4 },
+    ];
+
+    function calcStrength(pw) {
+      if (!pw || pw.length < 4) return -1;
+      let score = 0;
+      if (pw.length >= 8)  score++;
+      if (pw.length >= 12) score++;
+      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+      return Math.min(3, Math.floor(score * 4 / 5));
+    }
+
+    pwInput.addEventListener('input', () => {
+      const pw = pwInput.value;
+      if (!pw) {
+        strengthWrap.style.display = 'none';
+        return;
+      }
+      strengthWrap.style.display = 'block';
+
+      const idx   = calcStrength(pw);
+      const level = idx < 0 ? { label: 'Too short', cls: 'weak', filled: 0 } : STRENGTH_LEVELS[idx];
+
+      bars.forEach((bar, i) => {
+        bar.className = 'strength-bar';
+        if (i < level.filled) bar.classList.add(level.cls);
+      });
+      strengthLabel.className   = `strength-label${level.cls ? ' ' + level.cls : ''}`;
+      strengthLabel.textContent = level.label;
+    });
+
+    /* ─── Alert helpers ─── */
+    const alertBox  = document.getElementById('alertBox');
+    const alertText = document.getElementById('alertText');
+    const alertIcon = document.getElementById('alertIcon');
+
+    function showAlert(message, type = 'error') {
+      alertBox.className = `alert-box ${type} show`;
+      alertText.textContent = message;
+      alertIcon.textContent = type === 'error' ? '⚠️' : '✅';
+      if (type === 'error') {
+        alertBox.classList.remove('shake');
+        void alertBox.offsetWidth;
+        alertBox.classList.add('shake');
+      }
+    }
+
+    function hideAlert() { alertBox.className = 'alert-box'; }
+
+    /* ─── Loading state ─── */
+    const submitBtn  = document.getElementById('submitBtn');
+    const btnText    = submitBtn.querySelector('.btn-text');
+    const btnSpinner = document.getElementById('btnSpinner');
+
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      btnText.style.display    = loading ? 'none' : '';
+      btnSpinner.style.display = loading ? 'flex' : 'none';
+    }
+
+    /* ─── Form submit ─── */
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      const name     = document.getElementById('name').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!name || !email || !password) {
+        showAlert('Please fill in all fields.');
+        return;
+      }
+
+      if (password.length < 6) {
+        showAlert('Password must be at least 6 characters.');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ name, email, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('aethel_token', data.token);
+          localStorage.setItem('aethel_user', JSON.stringify(data.user));
+          showAlert('Account created! Redirecting…', 'success');
+          setTimeout(() => { window.location.href = '/index.html'; }, 700);
+        } else {
+          showAlert(data.error || 'Registration failed. Please try again.');
+          setLoading(false);
+        }
+      } catch (err) {
+        showAlert('Unable to connect to the server. Please try again.');
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
