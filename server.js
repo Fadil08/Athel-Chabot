@@ -52,6 +52,34 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
+let isDbInitialized = false;
+let dbInitPromise = null;
+
+async function initDbIfNeeded() {
+  if (isDbInitialized) return;
+  if (!dbInitPromise) {
+    dbInitPromise = dbManager.init().then(() => {
+      isDbInitialized = true;
+      console.log('Database initialized successfully.');
+    }).catch(err => {
+      console.error('Database initialization failed:', err);
+      dbInitPromise = null;
+      throw err;
+    });
+  }
+  await dbInitPromise;
+}
+
+// Middleware to ensure DB is initialized before handling requests
+app.use(async (req, res, next) => {
+  try {
+    await initDbIfNeeded();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: 'Database connection failed: ' + err.message });
+  }
+});
+
 async function startServer() {
   const server = app.listen(PORT, () => {
     console.log(`🤖 Aethel server running on http://localhost:${PORT}`);
@@ -69,16 +97,14 @@ async function startServer() {
   });
 }
 
-// Initialize DB Manager and start the server only after successful DB init
-dbManager.init()
-  .then(() => {
-    console.log('Database initialized successfully.');
-    return startServer();
-  })
-  .catch(err => {
-    console.error('Database initialization failed:', err);
-    process.exit(1);
+// Only start the listener if running locally (not in serverless env)
+if (!process.env.VERCEL) {
+  initDbIfNeeded().then(() => {
+    startServer();
+  }).catch(err => {
+    console.error('Initial DB connect failed, will retry on request.');
   });
+}
 
 // ==========================================
 // 1. Authentication Endpoints
