@@ -498,7 +498,27 @@ app.delete('/api/chatbots/:chatbotId/intents/:id', authMiddleware, authorizeBot,
 app.get('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, async (req, res) => {
   try {
     const docs = await dbManager.getDocuments(req.params.chatbotId);
-    res.json(docs);
+    const kb = await dbManager.getKnowledgeBase(req.params.chatbotId);
+
+    const mappedDocs = docs.map(doc => {
+      const docExcerpts = kb.filter(k => k.documentId === doc.id);
+      const pageNumbers = docExcerpts.map(e => e.pageNumber);
+      const maxPage = pageNumbers.length > 0 ? Math.max(...pageNumbers) : 0;
+
+      return {
+        id: doc.id,
+        chatbotId: doc.chatbotId,
+        name: doc.name,
+        fileName: doc.name,
+        uploadDate: doc.uploadDate,
+        sizeBytes: doc.sizeBytes,
+        fileSizeBytes: doc.sizeBytes,
+        status: doc.status,
+        pagesCount: maxPage || 1
+      };
+    });
+
+    res.json(mappedDocs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -662,7 +682,13 @@ app.get('/api/chatbots/:chatbotId/documents/:id/text', authMiddleware, authorize
   try {
     const kb = await dbManager.getKnowledgeBase(chatbotId);
     const docExcerpts = kb.filter(k => k.documentId === id);
-    res.json(docExcerpts);
+    // Sort by pageNumber to maintain document order
+    docExcerpts.sort((a, b) => (a.pageNumber - b.pageNumber) || a.id.localeCompare(b.id));
+    const fullText = docExcerpts.map(e => e.content).join('\n\n');
+    res.json({
+      extractedText: fullText,
+      excerpts: docExcerpts
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
