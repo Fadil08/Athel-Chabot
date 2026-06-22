@@ -115,7 +115,7 @@ export default function Login() {
               </div>
             )}
 
-            <form onSubmit={handleLogin} novalidate>
+            <form onSubmit={handleLogin} noValidate>
               <div className="form-group">
                 <label htmlFor="email">
                   <span className="lbl-icon">✉️</span> Email Address

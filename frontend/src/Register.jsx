@@ -112,7 +112,7 @@ export default function Register() {
               </div>
             )}
 
-            <form onSubmit={handleRegister} novalidate>
+            <form onSubmit={handleRegister} noValidate>
               <div className="form-group">
                 <label htmlFor="name">
                   <span className="lbl-icon">👤</span> Full Name

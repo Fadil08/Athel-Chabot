@@ -85,8 +85,6 @@ app.use(async (req, res, next) => {
 async function startServer() {
   const server = app.listen(PORT, () => {
     console.log(`🤖 Aethel server running on http://localhost:${PORT}`);
-    console.log(`🔑 Login page: http://localhost:${PORT}/login.html`);
-    console.log(`📊 Dashboard page: http://localhost:${PORT}/index.html`);
   });
 
   server.on('error', (err) => {
