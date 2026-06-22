@@ -15,6 +15,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "afinn-165": "^2.0.2",
     "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
@@ -23,7 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "mysql2": "^3.22.5",
-    "natural": "^8.1.1",
+    "natural": "^6.5.0",
     "pdf-parse": "^2.4.5",
     "sqlite3": "^6.0.1",
     "string-similarity": "^4.0.4"
