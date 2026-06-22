@@ -467,34 +467,58 @@ app.post('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, upl
     return res.status(400).json({ error: 'Gagal memvalidasi isi file PDF!' });
   }
 
+  const googleDriveService = require('./googleDriveService');
   const documentId = Date.now().toString();
 
   try {
+    let finalDocId = documentId;
+    let fileBuffer = null;
+
+    try {
+      fileBuffer = fs.readFileSync(filePath);
+    } catch (readErr) {
+      console.error('Gagal membaca file lokal:', readErr);
+      try { fs.unlinkSync(filePath); } catch (e) {}
+      return res.status(500).json({ error: 'Gagal memproses file setelah upload' });
+    }
+
+    // If Google Drive is configured, upload the file
+    if (googleDriveService.isConfigured()) {
+      try {
+        const driveFileId = await googleDriveService.uploadFile(fileName, fileBuffer);
+        finalDocId = driveFileId;
+      } catch (driveErr) {
+        console.error('Google Drive upload failed, falling back to local storage:', driveErr);
+      }
+    }
+
     const doc = await dbManager.addDocument(chatbotId, {
-      id: documentId,
+      id: finalDocId,
       name: fileName,
       sizeBytes: req.file.size,
       status: 'processing'
     });
 
     // Extract PDF in background
-    fs.readFile(filePath, async (err, data) => {
-      if (err) {
-        console.error('File read error:', err);
-        await dbManager.updateDocumentStatus(documentId, chatbotId, 'failed');
-        return;
-      }
+    (async () => {
       try {
-        const excerpts = await pdfProcessor.processPdf(data, fileName, documentId);
+        const excerpts = await pdfProcessor.processPdf(fileBuffer, fileName, finalDocId);
         // Excerpts need to carry chatbotId
         const excerptsWithBotId = excerpts.map(e => ({ ...e, chatbotId }));
         await dbManager.addKnowledgeBase(chatbotId, excerptsWithBotId);
-        await dbManager.updateDocumentStatus(documentId, chatbotId, 'processed');
+        await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'processed');
+
+        // Cleanup local file if Google Drive is configured
+        if (googleDriveService.isConfigured()) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch (e) {}
+        }
       } catch (pdfErr) {
         console.error('PDF extraction failed:', pdfErr);
-        await dbManager.updateDocumentStatus(documentId, chatbotId, 'failed');
+        await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'failed');
       }
-    });
+    })();
 
     res.json(doc);
   } catch (err) {
@@ -510,6 +534,13 @@ app.delete('/api/chatbots/:chatbotId/documents/:id', authMiddleware, authorizeBo
     
     await dbManager.deleteDocument(id, chatbotId);
 
+    // Delete from Google Drive if configured
+    const googleDriveService = require('./googleDriveService');
+    if (googleDriveService.isConfigured()) {
+      await googleDriveService.deleteFile(id);
+    }
+
+    // Cleanup local file (if it exists)
     if (doc) {
       const files = fs.readdirSync(UPLOAD_DIR);
       const matchedFile = files.find(f => f.endsWith(doc.name));
@@ -532,12 +563,27 @@ app.post('/api/chatbots/:chatbotId/documents/:id/reprocess', authMiddleware, aut
     const doc = docs.find(d => d.id === id);
     if (!doc) return res.status(404).json({ error: 'Dokumen tidak ditemukan' });
 
+    let buffer;
+    const googleDriveService = require('./googleDriveService');
+
+    // Try finding the file locally first
     const files = fs.readdirSync(UPLOAD_DIR);
     const matchedFile = files.find(f => f.endsWith(doc.name));
-    if (!matchedFile) return res.status(404).json({ error: 'File fisik tidak ditemukan' });
 
-    const filePath = path.join(UPLOAD_DIR, matchedFile);
-    const buffer = fs.readFileSync(filePath);
+    if (matchedFile) {
+      const filePath = path.join(UPLOAD_DIR, matchedFile);
+      buffer = fs.readFileSync(filePath);
+    } else if (googleDriveService.isConfigured()) {
+      // Download from Google Drive if not found locally
+      try {
+        buffer = await googleDriveService.downloadFile(id);
+      } catch (dlErr) {
+        console.error(`Gagal mendownload dari Google Drive untuk id ${id}:`, dlErr);
+        return res.status(404).json({ error: 'File tidak ditemukan di lokal maupun Google Drive' });
+      }
+    } else {
+      return res.status(404).json({ error: 'File fisik tidak ditemukan' });
+    }
     
     await dbManager.clearKnowledgeBase(id, chatbotId);
     const excerpts = await pdfProcessor.processPdf(buffer, doc.name, id);
