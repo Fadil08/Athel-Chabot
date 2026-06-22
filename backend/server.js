@@ -580,14 +580,14 @@ app.delete('/api/chatbots/:chatbotId/documents/:id', authMiddleware, authorizeBo
     }
 
     // Cleanup local file (if it exists)
-    if (doc) {
-      const files = fs.readdirSync(UPLOAD_DIR);
-      const matchedFile = files.find(f => f.endsWith(doc.name));
-      if (matchedFile) {
-        try {
+    if (doc && fs.existsSync(UPLOAD_DIR)) {
+      try {
+        const files = fs.readdirSync(UPLOAD_DIR);
+        const matchedFile = files.find(f => f.endsWith(doc.name));
+        if (matchedFile) {
           fs.unlinkSync(path.join(UPLOAD_DIR, matchedFile));
-        } catch (e) {}
-      }
+        }
+      } catch (e) {}
     }
     res.json({ success: true });
   } catch (err) {
@@ -606,8 +606,13 @@ app.post('/api/chatbots/:chatbotId/documents/:id/reprocess', authMiddleware, aut
     const googleDriveService = require('./googleDriveService');
 
     // Try finding the file locally first
-    const files = fs.readdirSync(UPLOAD_DIR);
-    const matchedFile = files.find(f => f.endsWith(doc.name));
+    let matchedFile;
+    if (fs.existsSync(UPLOAD_DIR)) {
+      try {
+        const files = fs.readdirSync(UPLOAD_DIR);
+        matchedFile = files.find(f => f.endsWith(doc.name));
+      } catch (e) {}
+    }
 
     if (matchedFile) {
       const filePath = path.join(UPLOAD_DIR, matchedFile);
