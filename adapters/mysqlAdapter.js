@@ -31,18 +31,22 @@ class MysqlAdapter {
   // ─── Init / Create Tables ─────────────────────────────────────────────────────
 
   async init() {
-    // First connect WITHOUT database to create it if needed
-    const tempPool = await mysql.createConnection({
-      host:     this.config.host,
-      port:     this.config.port,
-      user:     this.config.user,
-      password: this.config.password,
-      charset:  'utf8mb4'
-    });
-    await tempPool.execute(
-      `CREATE DATABASE IF NOT EXISTS \`${this.config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
-    );
-    await tempPool.end();
+    // First connect WITHOUT database to create it if needed (optional fallback)
+    try {
+      const tempPool = await mysql.createConnection({
+        host:     this.config.host,
+        port:     this.config.port,
+        user:     this.config.user,
+        password: this.config.password,
+        charset:  'utf8mb4'
+      });
+      await tempPool.execute(
+        `CREATE DATABASE IF NOT EXISTS \`${this.config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+      );
+      await tempPool.end();
+    } catch (e) {
+      console.warn('Could not create database automatically. Will try to connect directly:', e.message);
+    }
 
     // Create connection pool to the target database
     this.pool = mysql.createPool(this.config);
