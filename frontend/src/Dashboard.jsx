@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from './api';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -68,7 +69,7 @@ export default function Dashboard() {
   const loadChatbots = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/chatbots', {
+      const res = await apiFetch('/api/chatbots', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.status === 401 || res.status === 403) {
@@ -95,7 +96,7 @@ export default function Dashboard() {
 
     setCreating(true);
     try {
-      const res = await fetch('/api/chatbots', {
+      const res = await apiFetch('/api/chatbots', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +125,7 @@ export default function Dashboard() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/chatbots/${deleteTarget.id}`, {
+      const res = await apiFetch(`/api/chatbots/${deleteTarget.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -165,7 +166,7 @@ export default function Dashboard() {
         body.newPassword = newPassword;
       }
 
-      const res = await fetch('/api/auth/profile', {
+      const res = await apiFetch('/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +197,7 @@ export default function Dashboard() {
     try {
       const results = await Promise.all(
         bots.map(async (bot) => {
-          const statsRes = await fetch(`/api/chatbots/${bot.id}/stats`, {
+          const statsRes = await apiFetch(`/api/chatbots/${bot.id}/stats`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const stats = await statsRes.json();

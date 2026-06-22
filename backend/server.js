@@ -18,29 +18,45 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'chatagentive-super-secret-key-9988';
 
-app.use(cors());
+const CORS_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow no-origin (curl, mobile) and whitelisted origins
+    if (!origin || CORS_ORIGINS.some(o => origin.startsWith(o))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(bodyParser.json());
 // Serve production React app statics if present relative to root
 app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configure upload directory
-const UPLOAD_DIR = process.env.VERCEL
-  ? path.join('/tmp', 'uploads')
-  : path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) {
+// Configure upload directory (local dev only)
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+if (!process.env.VERCEL && !fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-// Multer config for PDF uploading
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
+// Multer config: use memoryStorage on Vercel (serverless), diskStorage locally
+const storage = process.env.VERCEL
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, UPLOAD_DIR);
+      },
+      filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+      }
+    });
 
 const upload = multer({
   storage,
@@ -475,31 +491,16 @@ app.post('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, upl
   }
 
   const { chatbotId } = req.params;
-  const filePath = req.file.path;
   const fileName = req.file.originalname;
 
-  // Strict validation: Check PDF magic bytes (%PDF)
-  try {
-    const fd = fs.openSync(filePath, 'r');
-    const buffer = Buffer.alloc(4);
-    fs.readSync(fd, buffer, 0, 4, 0);
-    fs.closeSync(fd);
-    if (buffer.toString() !== '%PDF') {
-      try { fs.unlinkSync(filePath); } catch (e) {}
-      return res.status(400).json({ error: 'File bukan format PDF asli!' });
-    }
-  } catch (err) {
-    try { fs.unlinkSync(filePath); } catch (e) {}
-    return res.status(400).json({ error: 'Gagal memvalidasi isi file PDF!' });
-  }
-
-  const googleDriveService = require('./googleDriveService');
-  const documentId = Date.now().toString();
-
-  try {
-    let finalDocId = documentId;
-    let fileBuffer = null;
-
+  // Get file buffer - memoryStorage gives req.file.buffer, diskStorage needs to read from path
+  let fileBuffer;
+  if (req.file.buffer) {
+    // Vercel / memoryStorage
+    fileBuffer = req.file.buffer;
+  } else {
+    // Local / diskStorage
+    const filePath = req.file.path;
     try {
       fileBuffer = fs.readFileSync(filePath);
     } catch (readErr) {
@@ -507,6 +508,19 @@ app.post('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, upl
       try { fs.unlinkSync(filePath); } catch (e) {}
       return res.status(500).json({ error: 'Gagal memproses file setelah upload' });
     }
+  }
+
+  // Strict validation: Check PDF magic bytes (%PDF)
+  if (!fileBuffer || fileBuffer.slice(0, 4).toString() !== '%PDF') {
+    if (req.file.path) { try { fs.unlinkSync(req.file.path); } catch (e) {} }
+    return res.status(400).json({ error: 'File bukan format PDF asli!' });
+  }
+
+  const googleDriveService = require('./googleDriveService');
+  const documentId = Date.now().toString();
+
+  try {
+    let finalDocId = documentId;
 
     // If Google Drive is configured, upload the file
     if (googleDriveService.isConfigured()) {
@@ -534,11 +548,9 @@ app.post('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, upl
         await dbManager.addKnowledgeBase(chatbotId, excerptsWithBotId);
         await dbManager.updateDocumentStatus(finalDocId, chatbotId, 'processed');
 
-        // Cleanup local file if Google Drive is configured
-        if (googleDriveService.isConfigured()) {
-          try {
-            fs.unlinkSync(filePath);
-          } catch (e) {}
+        // Cleanup local file if it exists on disk
+        if (req.file.path) {
+          try { fs.unlinkSync(req.file.path); } catch (e) {}
         }
       } catch (pdfErr) {
         console.error('PDF extraction failed:', pdfErr);
