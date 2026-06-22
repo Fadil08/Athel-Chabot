@@ -38,8 +38,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'chatagentive-super-secret-key-9988
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, mobile apps)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (curl, mobile apps) or 'null' (local file testing)
+    if (!origin || origin === 'null') return callback(null, true);
 
     const allowed =
       origin === process.env.FRONTEND_URL ||
@@ -535,19 +535,19 @@ app.post('/api/chatbots/:chatbotId/documents', authMiddleware, authorizeBot, upl
     return res.status(400).json({ error: 'File bukan format PDF asli!' });
   }
 
-  const googleDriveService = require('./googleDriveService');
+  const r2Service = require('./r2Service');
   const documentId = Date.now().toString();
 
   try {
     let finalDocId = documentId;
 
-    // If Google Drive is configured, upload the file
-    if (googleDriveService.isConfigured()) {
+    // If Cloudflare R2 is configured, upload the file
+    if (r2Service.isConfigured()) {
       try {
-        const driveFileId = await googleDriveService.uploadFile(fileName, fileBuffer);
-        finalDocId = driveFileId;
-      } catch (driveErr) {
-        console.error('Google Drive upload failed, falling back to local storage:', driveErr);
+        const r2FileId = await r2Service.uploadFile(fileName, fileBuffer);
+        finalDocId = r2FileId;
+      } catch (r2Err) {
+        console.error('Cloudflare R2 upload failed, falling back to local storage:', r2Err);
       }
     }
 
@@ -591,10 +591,10 @@ app.delete('/api/chatbots/:chatbotId/documents/:id', authMiddleware, authorizeBo
     
     await dbManager.deleteDocument(id, chatbotId);
 
-    // Delete from Google Drive if configured
-    const googleDriveService = require('./googleDriveService');
-    if (googleDriveService.isConfigured()) {
-      await googleDriveService.deleteFile(id);
+    // Delete from Cloudflare R2 if configured
+    const r2Service = require('./r2Service');
+    if (r2Service.isConfigured()) {
+      await r2Service.deleteFile(id);
     }
 
     // Cleanup local file (if it exists)
@@ -621,7 +621,7 @@ app.post('/api/chatbots/:chatbotId/documents/:id/reprocess', authMiddleware, aut
     if (!doc) return res.status(404).json({ error: 'Dokumen tidak ditemukan' });
 
     let buffer;
-    const googleDriveService = require('./googleDriveService');
+    const r2Service = require('./r2Service');
 
     // Try finding the file locally first
     let matchedFile;
@@ -635,13 +635,13 @@ app.post('/api/chatbots/:chatbotId/documents/:id/reprocess', authMiddleware, aut
     if (matchedFile) {
       const filePath = path.join(UPLOAD_DIR, matchedFile);
       buffer = fs.readFileSync(filePath);
-    } else if (googleDriveService.isConfigured()) {
-      // Download from Google Drive if not found locally
+    } else if (r2Service.isConfigured()) {
+      // Download from Cloudflare R2 if not found locally
       try {
-        buffer = await googleDriveService.downloadFile(id);
+        buffer = await r2Service.downloadFile(id);
       } catch (dlErr) {
-        console.error(`Gagal mendownload dari Google Drive untuk id ${id}:`, dlErr);
-        return res.status(404).json({ error: 'File tidak ditemukan di lokal maupun Google Drive' });
+        console.error(`Gagal mendownload dari Cloudflare R2 untuk id ${id}:`, dlErr);
+        return res.status(404).json({ error: 'File tidak ditemukan di lokal maupun Cloudflare R2' });
       }
     } else {
       return res.status(404).json({ error: 'File fisik tidak ditemukan' });
