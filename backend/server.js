@@ -18,19 +18,20 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'chatagentive-super-secret-key-9988';
 
-const CORS_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow no-origin (curl, mobile) and whitelisted origins
-    if (!origin || CORS_ORIGINS.some(o => origin.startsWith(o))) {
+    // Allow requests with no origin (curl, mobile apps)
+    if (!origin) return callback(null, true);
+
+    const allowed =
+      origin === process.env.FRONTEND_URL ||
+      origin.endsWith('.vercel.app') ||       // all Vercel preview/prod URLs
+      origin.startsWith('http://localhost');   // local dev
+
+    if (allowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS: ' + origin));
     }
   },
   credentials: true
