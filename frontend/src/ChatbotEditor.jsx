@@ -1260,29 +1260,26 @@ export default function ChatbotEditor() {
 
               <div style={{ color: 'var(--text)', display: 'flex', flexDirection: 'column', gap: '1.5rem', margin: '1.5rem 0', textAlign: 'left' }}>
                 <div>
-                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>1. Install Plugin</h4>
+                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>1. Install Plugin Header/Footer</h4>
                   <p style={{ fontSize: '13.5px', color: 'var(--muted)', lineHeight: '1.6' }}>
-                    Cari plugin <strong>"Aethel Chatbot"</strong> langsung dari dashboard admin WordPress Anda (<strong>Plugins &gt; Add New</strong>) dan klik <strong>Install Now</strong>.
-                  </p>
-                  <p style={{ fontSize: '13px', marginTop: '0.25rem' }}>
-                    Atau download manual dari direktori resmi: <a href="https://wordpress.org/plugins/aethel/" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', color: 'var(--primary)' }}>wordpress.org/plugins/aethel/</a>
+                    Masuk ke dashboard WordPress Anda, pergi ke <strong>Plugins &gt; Add New</strong>. Cari dan install plugin gratis seperti <strong>"WPCode"</strong> atau <strong>"Insert Headers and Footers"</strong>, lalu aktifkan.
                   </p>
                 </div>
 
                 <div>
-                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>2. Konfigurasi Pengaturan</h4>
+                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>2. Salin Script Pemasangan</h4>
                   <p style={{ fontSize: '13.5px', color: 'var(--muted)', lineHeight: '1.6', marginBottom: '0.8rem' }}>
-                    Masuk ke menu pengaturan <strong>Aethel</strong> di panel admin WordPress Anda, lalu masukkan <strong>Agent Key</strong> chatbot Anda:
+                    Salin kode script widget Anda berikut ini:
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                    <code style={{ fontFamily: 'monospace', fontSize: '12.5px', flex: 1, wordBreak: 'break-all', color: 'var(--primary)' }}>{agentKey}</code>
+                    <code style={{ fontFamily: 'monospace', fontSize: '11.5px', flex: 1, wordBreak: 'break-all', color: 'var(--primary)', whiteSpace: 'pre-wrap' }}>{getEmbedScript()}</code>
                     <button 
                       type="button"
                       className="btn-ghost"
-                      style={{ padding: '6px 12px', fontSize: '11px', width: 'auto' }}
+                      style={{ padding: '6px 12px', fontSize: '11px', width: 'auto', alignSelf: 'flex-start' }}
                       onClick={() => {
-                        navigator.clipboard.writeText(agentKey);
-                        showToast('Agent Key disalin!', 'success');
+                        navigator.clipboard.writeText(getEmbedScript());
+                        showToast('Script disalin!', 'success');
                       }}
                     >
                       📋 Salin
@@ -1291,9 +1288,9 @@ export default function ChatbotEditor() {
                 </div>
 
                 <div>
-                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>3. Simpan dan Tes</h4>
+                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>3. Tempel Script di WordPress</h4>
                   <p style={{ fontSize: '13.5px', color: 'var(--muted)', lineHeight: '1.6' }}>
-                    Klik <strong>Save Settings</strong> pada WordPress. Widget chat akan otomatis muncul dan aktif di pojok kanan bawah website Anda.
+                    Buka pengaturan plugin yang baru diinstall (misal: <strong>Code Snippets &gt; Header & Footer</strong>). Tempelkan script tadi ke dalam kotak <strong>Header</strong> atau <strong>Footer</strong>, lalu klik <strong>Save Changes</strong>. Widget akan otomatis muncul di website WordPress Anda.
                   </p>
                 </div>
               </div>
