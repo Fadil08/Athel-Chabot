@@ -51,6 +51,9 @@ export default function ChatbotEditor() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
 
+  // WordPress Modal State
+  const [wpModalOpen, setWpModalOpen] = useState(false);
+
   // Toast Helper
   const showToast = (message, type = 'info') => {
     setToast({ show: true, message, type });
@@ -974,7 +977,95 @@ export default function ChatbotEditor() {
                   </button>
                 </div>
 
-                <div className="integration-options">
+                <div className="integration-options" style={{ marginBottom: '24px' }}>
+                  <h4>Integrasi yang Tersedia</h4>
+                  <div className="integration-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+                    
+                    {/* WordPress Card */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: '12px',
+                      padding: '16px 20px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{
+                          fontSize: '24px',
+                          background: 'rgba(33, 117, 155, 0.1)',
+                          color: '#21759b',
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          🌐
+                        </div>
+                        <div style={{ textAlign: 'left' }}>
+                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: '600' }}>WordPress</h5>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '12.5px', color: 'var(--muted)' }}>Hubungkan chatbot dengan situs WordPress Anda</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="btn-primary" 
+                        style={{ width: 'auto', padding: '8px 20px', fontSize: '13px' }}
+                        onClick={() => setWpModalOpen(true)}
+                      >
+                        Hubungkan
+                      </button>
+                    </div>
+
+                    {/* Shopify Card */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: '12px',
+                      padding: '16px 20px',
+                      opacity: 0.6
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{
+                          fontSize: '24px',
+                          background: 'rgba(149, 190, 29, 0.1)',
+                          color: '#95be1d',
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          🛒
+                        </div>
+                        <div style={{ textAlign: 'left' }}>
+                          <h5 style={{ margin: 0, fontSize: '15px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Shopify <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', color: 'var(--muted)' }}>Segera Hadir</span>
+                          </h5>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '12.5px', color: 'var(--muted)' }}>Integrasikan dengan toko Shopify Anda</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="btn-ghost" 
+                        disabled 
+                        style={{ width: 'auto', padding: '8px 20px', fontSize: '13px', cursor: 'not-allowed' }}
+                      >
+                        Hubungkan
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="integration-options" style={{ paddingTop: '24px' }}>
                   <h4>Opsi Kustomisasi & Rotate Key</h4>
                   <p className="integration-desc">
                     Jika widget Anda dicurigai disalahgunakan atau digunakan oleh situs lain tanpa izin, Anda dapat men-generate ulang Widget Key baru di bawah ini.
@@ -1148,6 +1239,68 @@ export default function ChatbotEditor() {
               </div>
 
               <button className="btn-ghost" onClick={() => setViewingDocText(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WordPress Integration Modal */}
+      {wpModalOpen && (
+        <div className="modal-overlay open">
+          <div className="modal-box" style={{ maxWidth: '550px' }}>
+            <div className="modal-gradient-bar"></div>
+            <div className="modal-body">
+              <div className="modal-header">
+                <div>
+                  <h3 className="modal-title">WordPress Integration</h3>
+                  <p className="modal-desc">Ikuti langkah-langkah berikut untuk mengintegrasikan Aethel dengan situs WordPress Anda.</p>
+                </div>
+                <button className="modal-close" onClick={() => setWpModalOpen(false)}>×</button>
+              </div>
+
+              <div style={{ color: 'var(--text)', display: 'flex', flexDirection: 'column', gap: '1.5rem', margin: '1.5rem 0', textAlign: 'left' }}>
+                <div>
+                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>1. Install Plugin</h4>
+                  <p style={{ fontSize: '13.5px', color: 'var(--muted)', lineHeight: '1.6' }}>
+                    Cari plugin <strong>"Aethel Chatbot"</strong> langsung dari dashboard admin WordPress Anda (<strong>Plugins &gt; Add New</strong>) dan klik <strong>Install Now</strong>.
+                  </p>
+                  <p style={{ fontSize: '13px', marginTop: '0.25rem' }}>
+                    Atau download manual dari direktori resmi: <a href="https://wordpress.org/plugins/aethel/" target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', color: 'var(--primary)' }}>wordpress.org/plugins/aethel/</a>
+                  </p>
+                </div>
+
+                <div>
+                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>2. Konfigurasi Pengaturan</h4>
+                  <p style={{ fontSize: '13.5px', color: 'var(--muted)', lineHeight: '1.6', marginBottom: '0.8rem' }}>
+                    Masuk ke menu pengaturan <strong>Aethel</strong> di panel admin WordPress Anda, lalu masukkan <strong>Agent Key</strong> chatbot Anda:
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                    <code style={{ fontFamily: 'monospace', fontSize: '12.5px', flex: 1, wordBreak: 'break-all', color: 'var(--primary)' }}>{agentKey}</code>
+                    <button 
+                      type="button"
+                      className="btn-ghost"
+                      style={{ padding: '6px 12px', fontSize: '11px', width: 'auto' }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(agentKey);
+                        showToast('Agent Key disalin!', 'success');
+                      }}
+                    >
+                      📋 Salin
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--primary)' }}>3. Simpan dan Tes</h4>
+                  <p style={{ fontSize: '13.5px', color: 'var(--muted)', lineHeight: '1.6' }}>
+                    Klik <strong>Save Settings</strong> pada WordPress. Widget chat akan otomatis muncul dan aktif di pojok kanan bawah website Anda.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                <button className="btn-primary" style={{ width: 'auto', padding: '8px 24px' }} onClick={() => setWpModalOpen(false)}>Selesai</button>
+              </div>
             </div>
           </div>
         </div>
