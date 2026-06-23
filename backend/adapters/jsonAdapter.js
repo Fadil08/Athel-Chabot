@@ -30,12 +30,13 @@ class JsonAdapter {
         documents: [],
         knowledgeBase: []
       };
-      fs.writeFileSync(this.dbPath, JSON.stringify(initialData, null, 2), 'utf8');
+      await fs.promises.writeFile(this.dbPath, JSON.stringify(initialData, null, 2), 'utf8');
     }
   }
 
-  _read() {
-    const data = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
+  async _read() {
+    const fileContent = await fs.promises.readFile(this.dbPath, 'utf8');
+    const data = JSON.parse(fileContent);
     data.users = data.users || [];
     data.chatbots = data.chatbots || [];
     data.intents = data.intents || [];
@@ -44,17 +45,17 @@ class JsonAdapter {
     return data;
   }
 
-  _write(data) {
+  async _write(data) {
     data.users = data.users || [];
     data.chatbots = data.chatbots || [];
     data.intents = data.intents || [];
     data.documents = data.documents || [];
     data.knowledgeBase = data.knowledgeBase || [];
-    fs.writeFileSync(this.dbPath, JSON.stringify(data, null, 2), 'utf8');
+    await fs.promises.writeFile(this.dbPath, JSON.stringify(data, null, 2), 'utf8');
   }
 
   async createUser(user) {
-    const db = this._read();
+    const db = await this._read();
     const existing = db.users.find(u => u.email === user.email);
     if (existing) throw new Error('Email sudah terdaftar');
 
@@ -65,24 +66,24 @@ class JsonAdapter {
       name: user.name
     };
     db.users.push(newUser);
-    this._write(db);
+    await this._write(db);
     return { id: newUser.id, email: newUser.email, name: newUser.name };
   }
 
   async getUserByEmail(email) {
-    const db = this._read();
+    const db = await this._read();
     return db.users.find(u => u.email === email) || null;
   }
 
   async getUserById(id) {
-    const db = this._read();
+    const db = await this._read();
     const user = db.users.find(u => u.id === parseInt(id, 10));
     if (!user) return null;
     return { id: user.id, email: user.email, name: user.name };
   }
 
   async updateUser(id, userData) {
-    const db = this._read();
+    const db = await this._read();
     const userIndex = db.users.findIndex(u => u.id === parseInt(id, 10));
     if (userIndex === -1) throw new Error('User tidak ditemukan');
     
@@ -94,12 +95,12 @@ class JsonAdapter {
     }
     if (userData.password !== undefined) db.users[userIndex].password = userData.password;
     
-    this._write(db);
+    await this._write(db);
     return { id: db.users[userIndex].id, email: db.users[userIndex].email, name: db.users[userIndex].name };
   }
 
   async getChatbots(userId) {
-    const db = this._read();
+    const db = await this._read();
     return db.chatbots
       .filter(bot => bot.userId === parseInt(userId, 10))
       .map(bot => ({
@@ -111,7 +112,7 @@ class JsonAdapter {
   }
 
   async getChatbotById(id, userId) {
-    const db = this._read();
+    const db = await this._read();
     const bot = db.chatbots.find(b => b.id === parseInt(id, 10) && (userId ? b.userId === parseInt(userId, 10) : true));
     if (!bot) return null;
     return {
@@ -123,7 +124,7 @@ class JsonAdapter {
   }
 
   async getChatbotByAgentKey(agentKey) {
-    const db = this._read();
+    const db = await this._read();
     const bot = db.chatbots.find(b => b.agentKey === agentKey);
     if (!bot) return null;
     return {
@@ -135,7 +136,7 @@ class JsonAdapter {
   }
 
   async addChatbot(bot) {
-    const db = this._read();
+    const db = await this._read();
     const newChatbot = {
       id: db.chatbots.length > 0 ? Math.max(...db.chatbots.map(c => c.id)) + 1 : 1,
       userId: bot.userId,
@@ -161,12 +162,12 @@ class JsonAdapter {
       })
     };
     db.chatbots.push(newChatbot);
-    this._write(db);
+    await this._write(db);
     return newChatbot;
   }
 
   async updateChatbot(id, botData, userId) {
-    const db = this._read();
+    const db = await this._read();
     const index = db.chatbots.findIndex(b => b.id === parseInt(id, 10) && b.userId === parseInt(userId, 10));
     if (index === -1) throw new Error('Chatbot tidak ditemukan');
 
@@ -184,12 +185,12 @@ class JsonAdapter {
       }
     }
 
-    this._write(db);
+    await this._write(db);
     return db.chatbots[index];
   }
 
   async deleteChatbot(id, userId) {
-    const db = this._read();
+    const db = await this._read();
     const chatbotId = parseInt(id, 10);
     const bot = db.chatbots.find(b => b.id === chatbotId && b.userId === parseInt(userId, 10));
     if (!bot) return false;
@@ -198,17 +199,17 @@ class JsonAdapter {
     db.intents = db.intents.filter(i => i.chatbotId !== chatbotId);
     db.documents = db.documents.filter(d => d.chatbotId !== chatbotId);
     db.knowledgeBase = db.knowledgeBase.filter(k => k.chatbotId !== chatbotId);
-    this._write(db);
+    await this._write(db);
     return true;
   }
 
   async getIntents(chatbotId) {
-    const db = this._read();
+    const db = await this._read();
     return (db.intents || []).filter(intent => intent.chatbotId === parseInt(chatbotId, 10));
   }
 
   async addIntent(chatbotId, intent) {
-    const db = this._read();
+    const db = await this._read();
     if (!db.intents) db.intents = [];
     const newIntent = {
       id: intent.id || Date.now(),
@@ -219,12 +220,12 @@ class JsonAdapter {
       documentId: intent.documentId || null
     };
     db.intents.push(newIntent);
-    this._write(db);
+    await this._write(db);
     return newIntent;
   }
 
   async updateIntent(id, chatbotId, updatedIntent) {
-    const db = this._read();
+    const db = await this._read();
     if (!db.intents) db.intents = [];
     const index = db.intents.findIndex(i => i.id === parseInt(id, 10) && i.chatbotId === parseInt(chatbotId, 10));
     if (index === -1) throw new Error('Intent tidak ditemukan');
@@ -235,25 +236,25 @@ class JsonAdapter {
       response: updatedIntent.response,
       category: updatedIntent.category || 'General'
     };
-    this._write(db);
+    await this._write(db);
     return db.intents[index];
   }
 
   async deleteIntent(id, chatbotId) {
-    const db = this._read();
+    const db = await this._read();
     if (!db.intents) db.intents = [];
     db.intents = db.intents.filter(i => !(i.id === parseInt(id, 10) && i.chatbotId === parseInt(chatbotId, 10)));
-    this._write(db);
+    await this._write(db);
     return true;
   }
 
   async getDocuments(chatbotId) {
-    const db = this._read();
+    const db = await this._read();
     return (db.documents || []).filter(d => parseInt(d.chatbotId, 10) === parseInt(chatbotId, 10));
   }
 
   async addDocument(chatbotId, doc) {
-    const db = this._read();
+    const db = await this._read();
     if (!db.documents) db.documents = [];
     const newDoc = {
       id: doc.id || Date.now().toString(),
@@ -264,12 +265,12 @@ class JsonAdapter {
       status: doc.status || 'processed'
     };
     db.documents.push(newDoc);
-    this._write(db);
+    await this._write(db);
     return newDoc;
   }
 
   async deleteDocument(id, chatbotId) {
-    const db = this._read();
+    const db = await this._read();
     if (db.documents) {
       db.documents = db.documents.filter(d => !(d.id === id && parseInt(d.chatbotId, 10) === parseInt(chatbotId, 10)));
     }
@@ -279,27 +280,27 @@ class JsonAdapter {
     if (db.intents) {
       db.intents = db.intents.filter(i => !(i.documentId === id && parseInt(i.chatbotId, 10) === parseInt(chatbotId, 10)));
     }
-    this._write(db);
+    await this._write(db);
     return true;
   }
 
   async updateDocumentStatus(id, chatbotId, status) {
-    const db = this._read();
+    const db = await this._read();
     const doc = db.documents.find(d => d.id === id && parseInt(d.chatbotId, 10) === parseInt(chatbotId, 10));
     if (doc) {
       doc.status = status;
-      this._write(db);
+      await this._write(db);
     }
     return true;
   }
 
   async getKnowledgeBase(chatbotId) {
-    const db = this._read();
+    const db = await this._read();
     return (db.knowledgeBase || []).filter(k => parseInt(k.chatbotId, 10) === parseInt(chatbotId, 10));
   }
 
   async addKnowledgeBase(chatbotId, excerpts) {
-    const db = this._read();
+    const db = await this._read();
     if (!db.knowledgeBase) db.knowledgeBase = [];
     const prepared = excerpts.map((e, idx) => ({
       id: e.id || `${Date.now()}-${idx}`,
@@ -310,24 +311,24 @@ class JsonAdapter {
       filename: e.filename
     }));
     db.knowledgeBase.push(...prepared);
-    this._write(db);
+    await this._write(db);
     return prepared;
   }
 
   async clearKnowledgeBase(documentId, chatbotId) {
-    const db = this._read();
+    const db = await this._read();
     if (db.knowledgeBase) {
       db.knowledgeBase = db.knowledgeBase.filter(k => !(k.documentId === documentId && parseInt(k.chatbotId, 10) === parseInt(chatbotId, 10)));
     }
-    this._write(db);
+    await this._write(db);
   }
 
   async importData(data) {
-    const db = this._read();
+    const db = await this._read();
     db.intents = data.intents || [];
     db.documents = data.documents || [];
     db.knowledgeBase = data.kb || data.knowledgeBase || [];
-    this._write(db);
+    await this._write(db);
   }
 }
 

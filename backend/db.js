@@ -186,5 +186,26 @@ module.exports = {
   // Knowledge Base
   async getKnowledgeBase(chatbotId)              { return await getAdapter().getKnowledgeBase(chatbotId); },
   async addKnowledgeBase(chatbotId, excerpts)    { return await getAdapter().addKnowledgeBase(chatbotId, excerpts); },
-  async clearKnowledgeBase(documentId, chatbotId) { return await getAdapter().clearKnowledgeBase(documentId, chatbotId); }
+  async clearKnowledgeBase(documentId, chatbotId) { return await getAdapter().clearKnowledgeBase(documentId, chatbotId); },
+
+  // Stats optimized helper
+  async getStats(chatbotId, userId) {
+    const adapter = getAdapter();
+    if (typeof adapter.getStats === 'function') {
+      return await adapter.getStats(chatbotId, userId);
+    }
+    // Fallback to legacay full database select for adapters without optimized implementation
+    const intents = await adapter.getIntents(chatbotId);
+    const docs = await adapter.getDocuments(chatbotId);
+    const kb = await adapter.getKnowledgeBase(chatbotId);
+    const bot = await adapter.getChatbotById(chatbotId, userId);
+    return {
+      intentsCount: intents.length,
+      documentsCount: docs.length,
+      kbExcerptsCount: kb.length,
+      processedDocs: docs.filter(d => d.status === 'processed').length,
+      failedDocs: docs.filter(d => d.status === 'failed').length,
+      tokenUsage: bot ? (bot.tokenUsage || 0) : 0
+    };
+  }
 };

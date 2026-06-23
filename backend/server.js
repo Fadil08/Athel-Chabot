@@ -395,18 +395,8 @@ app.post('/api/chatbots/:chatbotId/test-ai', authMiddleware, authorizeBot, async
 app.get('/api/chatbots/:chatbotId/stats', authMiddleware, authorizeBot, async (req, res) => {
   const { chatbotId } = req.params;
   try {
-    const intents = await dbManager.getIntents(chatbotId);
-    const docs = await dbManager.getDocuments(chatbotId);
-    const kb = await dbManager.getKnowledgeBase(chatbotId);
-    const bot = await dbManager.getChatbotById(chatbotId, req.user.id);
-    res.json({
-      intentsCount: intents.length,
-      documentsCount: docs.length,
-      kbExcerptsCount: kb.length,
-      processedDocs: docs.filter(d => d.status === 'processed').length,
-      failedDocs: docs.filter(d => d.status === 'failed').length,
-      tokenUsage: bot ? (bot.tokenUsage || 0) : 0
-    });
+    const statsData = await dbManager.getStats(chatbotId, req.user.id);
+    res.json(statsData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

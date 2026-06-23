@@ -358,6 +358,22 @@ class MysqlAdapter {
     );
   }
 
+  async getStats(chatbotId, userId) {
+    const [[{ cnt: intentsCount }]] = await this.pool.execute('SELECT COUNT(*) as cnt FROM intents WHERE chatbotId = ?', [chatbotId]);
+    const [docs] = await this.pool.execute('SELECT status FROM documents WHERE chatbotId = ?', [chatbotId]);
+    const [[{ cnt: kbExcerptsCount }]] = await this.pool.execute('SELECT COUNT(*) as cnt FROM knowledgeBase WHERE chatbotId = ?', [chatbotId]);
+    const [[bot]] = await this.pool.execute('SELECT tokenUsage FROM chatbots WHERE id = ?', [chatbotId]);
+    
+    return {
+      intentsCount,
+      documentsCount: docs.length,
+      kbExcerptsCount,
+      processedDocs: docs.filter(d => d.status === 'processed').length,
+      failedDocs: docs.filter(d => d.status === 'failed').length,
+      tokenUsage: bot ? (bot.tokenUsage || 0) : 0
+    };
+  }
+
   async close() {
     if (this.pool) await this.pool.end();
   }
