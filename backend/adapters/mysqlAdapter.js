@@ -31,6 +31,18 @@ class MysqlAdapter {
   // ─── Init / Create Tables ─────────────────────────────────────────────────────
 
   async init() {
+    // Create connection pool to the target database
+    this.pool = mysql.createPool(this.config);
+
+    // Fast path: Check if the users table (and therefore database/tables) already exists
+    try {
+      await this.query('SELECT 1 FROM users LIMIT 1');
+      console.log('Database tables already exist. Skipping creation/migration checks.');
+      return;
+    } catch (err) {
+      console.log('Database or tables do not exist. Performing full setup...');
+    }
+
     // First connect WITHOUT database to create it if needed (optional fallback)
     try {
       const tempPool = await mysql.createConnection({
@@ -47,9 +59,6 @@ class MysqlAdapter {
     } catch (e) {
       console.warn('Could not create database automatically. Will try to connect directly:', e.message);
     }
-
-    // Create connection pool to the target database
-    this.pool = mysql.createPool(this.config);
 
     // Create tables
     await this.query(`
