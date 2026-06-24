@@ -86,9 +86,10 @@ function stemTokens(tokens, language = 'id') {
  * Full Pipeline Preprocessing
  */
 function preprocess(text, config = {}) {
+  const isNlpEnabled = config.nlpEnabled !== false;
   const lang = config.language || 'id';
-  const enableStopWords = config.stopWordsEnabled !== false;
-  const enableStemming = config.stemmingEnabled !== false;
+  const enableStopWords = isNlpEnabled && config.stopWordsEnabled !== false;
+  const enableStemming = isNlpEnabled && config.stemmingEnabled !== false;
 
   let processed = normalizeText(text);
   let tokens = tokenizeText(processed);

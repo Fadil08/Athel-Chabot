@@ -7,7 +7,7 @@ const aiService = require('./aiService');
  * Calculates similarity between user tokens and comparison tokens.
  * If isKeyword is true, matches relative to the comparison token length (meaning if keyword is fully inside user input, it's 100% match).
  */
-function calculateTokenSimilarity(userTokens, targetTokens, isKeyword = false) {
+function calculateTokenSimilarity(userTokens, targetTokens, isKeyword = false, nlpEnabled = true) {
   if (userTokens.length === 0 || targetTokens.length === 0) return 0;
   
   let totalScore = 0;
@@ -21,9 +21,14 @@ function calculateTokenSimilarity(userTokens, targetTokens, isKeyword = false) {
       if (matchedIndices.has(i)) continue;
       const t2 = targetTokens[i];
       
-      const lev = natural.LevenshteinDistance(t1, t2);
-      const maxLen = Math.max(t1.length, t2.length);
-      const similarity = maxLen === 0 ? 1 : 1 - (lev / maxLen);
+      let similarity = 0;
+      if (nlpEnabled) {
+        const lev = natural.LevenshteinDistance(t1, t2);
+        const maxLen = Math.max(t1.length, t2.length);
+        similarity = maxLen === 0 ? 1 : 1 - (lev / maxLen);
+      } else {
+        similarity = (t1 === t2) ? 1 : 0;
+      }
       
       if (similarity > bestTokenScore) {
         bestTokenScore = similarity;
@@ -74,6 +79,7 @@ async function findAnswer(chatbotId, userMessage) {
   };
 
   const threshold = nlpConfig.similarityThreshold || 0.6;
+  const isNlpEnabled = nlpConfig.nlpEnabled !== false;
   const defaultFallback = branding.fallbackMessage;
 
   // Preprocess user input
@@ -88,7 +94,7 @@ async function findAnswer(chatbotId, userMessage) {
     for (const rawKeyword of intent.keywords) {
       const keywordTokens = nlpProcessor.preprocess(rawKeyword, nlpConfig);
       // isKeyword = true
-      const score = calculateTokenSimilarity(userTokens, keywordTokens, true);
+      const score = calculateTokenSimilarity(userTokens, keywordTokens, true, isNlpEnabled);
       
       if (score > bestIntentScore) {
         bestIntentScore = score;
@@ -114,7 +120,7 @@ async function findAnswer(chatbotId, userMessage) {
   // Sort and match excerpts
   const scoredExcerpts = kb.map(excerpt => {
     const excerptTokens = nlpProcessor.preprocess(excerpt.content, nlpConfig);
-    const score = calculateTokenSimilarity(userTokens, excerptTokens, false);
+    const score = calculateTokenSimilarity(userTokens, excerptTokens, false, isNlpEnabled);
     return { excerpt, score };
   })
   .filter(item => item.score > 0.15) // soft threshold for retrieval

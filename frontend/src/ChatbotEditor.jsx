@@ -53,8 +53,9 @@ export default function ChatbotEditor() {
   const [aiApiKey, setAiApiKey] = useState('');
   const [aiSystemPrompt, setAiSystemPrompt] = useState('');
   const [similarityThreshold, setSimilarityThreshold] = useState(0.6);
+  const [nlpEnabled, setNlpEnabled] = useState(true);
   const [nlpConfig, setNlpConfig] = useState({});
-  const [botName, setBotName] = useState('');
+  const [botName, setBotName] = useState('Support Bot');
   const [agentKey, setAgentKey] = useState('');
   const [testingAI, setTestingAI] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -141,15 +142,16 @@ export default function ChatbotEditor() {
       if (configRes.ok) {
         const configData = await configRes.json();
         setBotConfig(configData);
-        setBotName(configData.name || '');
         setAiEnabled(configData.aiEnabled || false);
         setAiProvider(configData.aiProvider || 'openai');
         setAiModel(configData.aiModel || '');
         setAiApiKey(configData.aiApiKey || '');
         setAiSystemPrompt(configData.aiSystemPrompt || '');
-        setAgentKey(configData.agentKey || '');
+        setSimilarityThreshold(configData.nlp?.similarityThreshold || 0.6);
+        setNlpEnabled(configData.nlp?.nlpEnabled !== false);
         setNlpConfig(configData.nlp || {});
-        setSimilarityThreshold(configData.nlp?.similarityThreshold ?? 0.6);
+        setBotName(configData.botName || 'Support Bot');
+        setAgentKey(configData.agentKey || '');
         if (configData.branding) {
           // If it's a string, parse it. If it's an object, spread it.
           const parsedBranding = typeof configData.branding === 'string' 
@@ -259,9 +261,11 @@ export default function ChatbotEditor() {
           aiModel,
           aiApiKey,
           aiSystemPrompt,
+          botName,
           nlp: {
             ...nlpConfig,
-            similarityThreshold: parseFloat(similarityThreshold)
+            similarityThreshold: parseFloat(similarityThreshold),
+            nlpEnabled: nlpEnabled
           },
           branding: brandingConfig
         })
@@ -776,6 +780,21 @@ export default function ChatbotEditor() {
                     </label>
                   </div>
 
+                  <div className="form-group toggle-group">
+                    <div className="toggle-text">
+                      <label>Aktifkan Pemrosesan Bahasa (NLP)</label>
+                      <p className="form-hint">Jika dimatikan, pencocokan kata harus persis/sama persis tanpa toleransi variasi kata (fuzzy matching) dan tidak menghapus kata hubung.</p>
+                    </div>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        checked={nlpEnabled} 
+                        onChange={(e) => setNlpEnabled(e.target.checked)} 
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                  </div>
+
                   <div className="form-group">
                     <label>Sensitivitas Pencocokan Kata (Similarity Threshold)</label>
                     <input 
@@ -785,8 +804,9 @@ export default function ChatbotEditor() {
                       value={similarityThreshold}
                       onChange={(e) => setSimilarityThreshold(e.target.value)} 
                       style={{padding: '0', cursor: 'pointer', height: 'auto'}}
+                      disabled={!nlpEnabled}
                     />
-                    <div className="form-hint" style={{marginTop: '4px', fontSize: '13px'}}>
+                    <div className="form-hint" style={{marginTop: '4px', fontSize: '13px', opacity: nlpEnabled ? 1 : 0.5}}>
                       Skor: <strong>{similarityThreshold}</strong>. Semakin rendah nilai, semakin mudah cocok namun rawan salah tangkap. (Saran: 0.6 - 0.8)
                     </div>
                   </div>
