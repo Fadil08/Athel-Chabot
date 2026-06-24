@@ -41,10 +41,8 @@ app.use(cors({
     // Allow requests with no origin (curl, mobile apps) or 'null' (local file testing)
     if (!origin || origin === 'null') return callback(null, true);
 
-    const allowed =
-      origin === process.env.FRONTEND_URL ||
-      origin.endsWith('.vercel.app') ||       // all Vercel preview/prod URLs
-      origin.startsWith('http://localhost');   // local dev
+    // Mengizinkan semua origin agar widget bisa dipasang di website mana saja (Wordpress, dll)
+    const allowed = true;
 
     if (allowed) {
       callback(null, true);
