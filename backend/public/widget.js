@@ -415,6 +415,35 @@
       if (e.key === 'Enter') sendMsg();
     });
 
+    function parseMarkdown(text) {
+      if (!text) return '';
+      let html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      let lines = html.split('\n');
+      let inList = false;
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (/^[\*\-]\s+(.*)/.test(line)) {
+          if (!inList) {
+            lines[i] = '<ul style="margin: 4px 0 4px 20px; padding: 0;"><li>' + line.replace(/^[\*\-]\s+/, '') + '</li>';
+            inList = true;
+          } else {
+            lines[i] = '<li>' + line.replace(/^[\*\-]\s+/, '') + '</li>';
+          }
+        } else {
+          if (inList) { lines[i - 1] += '</ul>'; inList = false; }
+          lines[i] = line;
+        }
+      }
+      if (inList) lines[lines.length - 1] += '</ul>';
+      html = lines.join('<br/>');
+      html = html.replace(/<\/ul><br\/>/g, '</ul>');
+      html = html.replace(/<ul(.*?)><br\/>/g, '<ul$1>');
+      html = html.replace(/<\/li><br\/><li>/g, '</li><li>');
+      html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color: inherit; text-decoration: underline;">$1</a>');
+      return html;
+    }
+
     function addMessage(text, isUser = false, sourceInfo = null) {
       const msg = document.createElement('div');
       msg.classList.add('msg', isUser ? 'user' : 'bot');
@@ -424,7 +453,7 @@
           msg.classList.add('kb-source');
           msg.innerHTML = `
             <div class="badge">📚 PDF Resource</div>
-            <div>${text}</div>
+            <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
             <div class="citation">📄 Sumber: <strong>${sourceInfo.filename}</strong> (Hal. ${sourceInfo.pageNumber})</div>
           `;
         } else if (sourceInfo.source === 'ai_llm') {
@@ -434,16 +463,18 @@
           if (sourceInfo.filename) {
             msg.innerHTML = `
               <div class="badge ai">🤖 AI RAG RESPOND</div>
-              <div>${text}</div>
+              <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
               <div class="citation">📄 Referensi PDF: <strong>${sourceInfo.filename}</strong> (Hal. ${sourceInfo.pageNumber})</div>
             `;
           } else {
             msg.innerHTML = `
               <div class="badge ai">${badgeText}</div>
-              <div>${text}</div>
+              <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
             `;
           }
         }
+      } else if (!isUser) {
+        msg.innerHTML = `<div style="line-height: 1.5;">${parseMarkdown(text)}</div>`;
       } else {
         msg.innerText = text;
       }

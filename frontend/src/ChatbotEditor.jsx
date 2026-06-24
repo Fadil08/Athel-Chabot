@@ -3,6 +3,35 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { apiFetch } from './api';
 import './ChatbotEditor.css';
 
+function parseMarkdown(text) {
+  if (!text) return '';
+  let html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  let lines = html.split('\n');
+  let inList = false;
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (/^[\*\-]\s+(.*)/.test(line)) {
+      if (!inList) {
+        lines[i] = '<ul style="margin: 4px 0 4px 20px; padding: 0;"><li>' + line.replace(/^[\*\-]\s+/, '') + '</li>';
+        inList = true;
+      } else {
+        lines[i] = '<li>' + line.replace(/^[\*\-]\s+/, '') + '</li>';
+      }
+    } else {
+      if (inList) { lines[i - 1] += '</ul>'; inList = false; }
+      lines[i] = line;
+    }
+  }
+  if (inList) lines[lines.length - 1] += '</ul>';
+  html = lines.join('<br/>');
+  html = html.replace(/<\/ul><br\/>/g, '</ul>');
+  html = html.replace(/<ul(.*?)><br\/>/g, '<ul$1>');
+  html = html.replace(/<\/li><br\/><li>/g, '</li><li>');
+  html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color: inherit; text-decoration: underline;">$1</a>');
+  return html;
+}
+
 export default function ChatbotEditor() {
   const [searchParams] = useSearchParams();
   const chatbotId = searchParams.get('chatbotId');
@@ -1369,7 +1398,11 @@ export default function ChatbotEditor() {
                     {chatMessages.map((msg, idx) => (
                       <div key={idx} className={`chat-bubble-row ${msg.sender}`}>
                         <div className="chat-bubble">
-                          <p>{msg.text}</p>
+                          {msg.sender === 'bot' ? (
+                            <p style={{lineHeight: 1.5, margin: 0}} dangerouslySetInnerHTML={{ __html: parseMarkdown(msg.text) }}></p>
+                          ) : (
+                            <p>{msg.text}</p>
+                          )}
                           <span className="chat-time">
                             {msg.time}
                             {msg.source && <span className="msg-source-tag">source: {msg.source}</span>}
