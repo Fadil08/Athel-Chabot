@@ -1,7 +1,10 @@
 const natural = require('natural');
+const crypto = require('crypto');
 const nlpProcessor = require('./nlpProcessor');
 const dbManager = require('./db');
 const aiService = require('./aiService');
+
+const rateLimitMap = new Map();
 
 /**
  * Calculates similarity between user tokens and comparison tokens.
@@ -60,7 +63,7 @@ function calculateTokenSimilarity(userTokens, targetTokens, isKeyword = false, n
 /**
  * Find Answer (Hybrid Local NLP + RAG AI Fallback)
  */
-async function findAnswer(chatbotId, userMessage) {
+async function findAnswer(chatbotId, userMessage, clientIp = '127.0.0.1') {
   const chatbot = await dbManager.getChatbotById(chatbotId);
   if (!chatbot) {
     return { found: false, response: 'Chatbot tidak ditemukan' };
@@ -138,6 +141,54 @@ async function findAnswer(chatbotId, userMessage) {
       let systemPrompt = chatbot.aiSystemPrompt || 'Anda adalah asisten AI yang cerdas.';
       systemPrompt += `\n\nJika informasi tidak ditemukan di data konteks yang disediakan, Anda harus membalas dengan pesan berikut secara persis: "${fallbackMsg}"`;
 
+      // Rate Limiter Check
+      if (nlpConfig.rateLimitEnabled) {
+        const maxLimit = nlpConfig.rateLimitMax || 20;
+        const limitKey = `${chatbotId}_${clientIp}`;
+        const now = Date.now();
+        const hourMs = 60 * 60 * 1000;
+        let limitData = rateLimitMap.get(limitKey);
+
+        if (!limitData || now > limitData.resetAt) {
+          limitData = { count: 0, resetAt: now + hourMs };
+        }
+
+        if (limitData.count >= maxLimit) {
+          console.warn(`Rate limit exceeded for IP ${clientIp} on Chatbot ${chatbotId}`);
+          return {
+            found: false,
+            source: 'rate_limit',
+            response: fallbackMsg
+          };
+        }
+
+        limitData.count += 1;
+        rateLimitMap.set(limitKey, limitData);
+      }
+
+      // Caching Check
+      const queryHash = crypto.createHash('md5').update(userMessage.toLowerCase().trim()).digest('hex');
+      if (nlpConfig.cacheEnabled) {
+        const cachedResponse = await dbManager.getCachedResponse(chatbotId, queryHash);
+        if (cachedResponse) {
+          let citation = null;
+          if (scoredExcerpts.length > 0) {
+            citation = {
+              filename: scoredExcerpts[0].excerpt.filename,
+              pageNumber: scoredExcerpts[0].excerpt.pageNumber
+            };
+          }
+          return {
+            found: true,
+            source: 'ai_llm',
+            response: cachedResponse,
+            filename: citation ? citation.filename : null,
+            pageNumber: citation ? citation.pageNumber : null,
+            cached: true
+          };
+        }
+      }
+
       const aiResult = await aiService.generateResponse(
         chatbot.aiProvider,
         chatbot.aiApiKey,
@@ -173,6 +224,10 @@ async function findAnswer(chatbotId, userMessage) {
       // Save Q&A to database if it's not a fallback message to be used by NLP later
       if (aiResponse && aiResponse.trim().toLowerCase() !== fallbackMsg.trim().toLowerCase()) {
         try {
+          if (nlpConfig.cacheEnabled) {
+            await dbManager.setCachedResponse(chatbotId, queryHash, aiResponse);
+          }
+
           const existingIntents = await dbManager.getIntents(chatbotId);
           const cleanedMessage = userMessage.trim().toLowerCase();
           const exists = existingIntents.some(intent => 

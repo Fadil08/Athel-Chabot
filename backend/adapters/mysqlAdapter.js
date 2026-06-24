@@ -139,6 +139,18 @@ class MysqlAdapter {
     } catch (e) {
       // Ignore if already exists
     }
+
+    await this.query(`
+      CREATE TABLE IF NOT EXISTS ai_cache (
+        id         VARCHAR(128) PRIMARY KEY,
+        chatbotId  INT,
+        queryHash  VARCHAR(128),
+        response   LONGTEXT,
+        createdAt  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (chatbotId) REFERENCES chatbots(id) ON DELETE CASCADE,
+        INDEX(chatbotId, queryHash)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
   }
 
   // ─── Auth & Users ─────────────────────────────────────────────────────────────
@@ -381,6 +393,24 @@ class MysqlAdapter {
       failedDocs: docs.filter(d => d.status === 'failed').length,
       tokenUsage: bot ? (bot.tokenUsage || 0) : 0
     };
+  }
+
+  // ─── AI Cache ────────────────────────────────────────────────────────────────
+
+  async getCachedResponse(chatbotId, queryHash) {
+    const rows = await this.query(
+      'SELECT response FROM ai_cache WHERE chatbotId = ? AND queryHash = ? LIMIT 1',
+      [chatbotId, queryHash]
+    );
+    return rows[0] ? rows[0].response : null;
+  }
+
+  async setCachedResponse(chatbotId, queryHash, response) {
+    const id = Date.now().toString(36) + Math.random().toString(36).substring(2);
+    await this.run(
+      'INSERT INTO ai_cache (id, chatbotId, queryHash, response) VALUES (?, ?, ?, ?)',
+      [id, chatbotId, queryHash, response]
+    );
   }
 
   async close() {

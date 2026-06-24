@@ -707,7 +707,8 @@ app.post('/api/chatbots/:chatbotId/chat', async (req, res) => {
   }
 
   try {
-    const answer = await chatbotEngine.findAnswer(chatbotId, message);
+    const clientIp = req.ip || req.connection.remoteAddress;
+    const answer = await chatbotEngine.findAnswer(chatbotId, message, clientIp);
     res.json(answer);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -741,7 +742,8 @@ app.post('/api/agents/:agentKey/chat', async (req, res) => {
     const bot = await dbManager.getChatbotByAgentKey(agentKey);
     if (!bot) return res.status(404).json({ error: 'Chatbot tidak ditemukan' });
 
-    const answer = await chatbotEngine.findAnswer(bot.id, message);
+    const clientIp = req.ip || req.connection.remoteAddress;
+    const answer = await chatbotEngine.findAnswer(bot.id, message, clientIp);
     res.json(answer);
   } catch (err) {
     res.status(500).json({ error: err.message });

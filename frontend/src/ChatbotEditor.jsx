@@ -861,6 +861,52 @@ export default function ChatbotEditor() {
                           onChange={(e) => setAiSystemPrompt(e.target.value)}
                         ></textarea>
                       </div>
+
+                      <div className="form-group toggle-group" style={{marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border)'}}>
+                        <div className="toggle-text">
+                          <label>Aktifkan Caching AI</label>
+                          <p className="form-hint">Menyimpan dan menggunakan ulang jawaban AI jika pengunjung menanyakan frasa yang sama persis untuk menghemat kuota token API.</p>
+                        </div>
+                        <label className="switch">
+                          <input 
+                            type="checkbox" 
+                            checked={cacheEnabled} 
+                            onChange={(e) => setCacheEnabled(e.target.checked)} 
+                          />
+                          <span className="slider round"></span>
+                        </label>
+                      </div>
+
+                      <div className="form-group toggle-group">
+                        <div className="toggle-text">
+                          <label>Aktifkan Rate Limiter Publik</label>
+                          <p className="form-hint">Membatasi jumlah pertanyaan beruntun menggunakan AI per alamat IP pengunjung (anti-spam).</p>
+                        </div>
+                        <label className="switch">
+                          <input 
+                            type="checkbox" 
+                            checked={rateLimitEnabled} 
+                            onChange={(e) => setRateLimitEnabled(e.target.checked)} 
+                          />
+                          <span className="slider round"></span>
+                        </label>
+                      </div>
+
+                      {rateLimitEnabled && (
+                        <div className="form-group">
+                          <label>Batas Maksimum Query AI (Per Jam)</label>
+                          <input 
+                            type="number" 
+                            className="form-input" 
+                            value={rateLimitMax}
+                            onChange={(e) => setRateLimitMax(e.target.value)} 
+                            min="1"
+                            max="1000"
+                            style={{width: '100px'}}
+                          />
+                          <div className="form-hint">Jumlah pertanyaan yang diizinkan sebelum dialihkan ke Manual Q&A.</div>
+                        </div>
+                      )}
                     </div>
                   )}
 
