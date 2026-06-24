@@ -80,8 +80,21 @@
       return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 90, 121';
     }
 
-    const primaryColor = branding.primaryColor || '#ff5a79';
-    const bubbleColor = branding.bubbleColor || '#3b82f6';
+    const primaryColor = branding.primaryColor || '#fb2c36';
+    const chatBackground = branding.chatBackground || '#0b0f19';
+    const headerBackground = branding.headerBackground || 'linear-gradient(135deg, #1e293b, #0f172a)';
+    const headerTextColor = branding.headerTextColor || '#f3f4f6';
+    const userBubbleColor = branding.userBubbleColor || primaryColor;
+    const userTextColor = branding.userTextColor || '#ffffff';
+    const agentBubbleColor = branding.agentBubbleColor || '#1e293b';
+    const agentTextColor = branding.agentTextColor || '#e2e8f0';
+    const audioButtonColor = branding.audioButtonColor || primaryColor;
+    
+    const avatarUrl = branding.avatarUrl || '';
+    const floatingIconUrl = branding.floatingIconUrl || '';
+    const displayName = branding.displayName || botName || 'Support Bot';
+    const welcomeMessage = branding.welcomeMessage || 'Halo! Ada yang bisa saya bantu?';
+
     const primaryColorRgb = hexToRgb(primaryColor);
 
     const host = document.createElement('div');
@@ -101,8 +114,14 @@
         font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         --primary-color: ${primaryColor};
         --primary-color-rgb: ${primaryColorRgb};
-        --bubble-color-1: ${primaryColor};
-        --bubble-color-2: ${bubbleColor};
+        --chat-bg: ${chatBackground};
+        --header-bg: ${headerBackground};
+        --header-text: ${headerTextColor};
+        --user-bubble-bg: ${userBubbleColor};
+        --user-text: ${userTextColor};
+        --agent-bubble-bg: ${agentBubbleColor};
+        --agent-text: ${agentTextColor};
+        --audio-btn-bg: ${audioButtonColor};
       }
 
       /* Bubble Trigger */
@@ -110,7 +129,7 @@
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--bubble-color-1), var(--bubble-color-2));
+        background: var(--primary-color);
         box-shadow: 0 4px 20px rgba(var(--primary-color-rgb), 0.4);
         display: flex;
         align-items: center;
@@ -135,7 +154,7 @@
         right: 0;
         width: 380px;
         height: 520px;
-        background: #0f172a;
+        background: var(--chat-bg);
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 16px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
@@ -155,7 +174,7 @@
 
       /* Header */
       .header {
-        background: linear-gradient(135deg, #1e293b, #0f172a);
+        background: var(--header-bg);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         padding: 16px 20px;
         display: flex;
@@ -164,7 +183,7 @@
       }
       .header-title {
         font-weight: 700;
-        color: #f3f4f6;
+        color: var(--header-text);
         font-size: 16px;
       }
       .header-subtitle {
@@ -191,7 +210,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        background: #0b0f19;
+        background: transparent;
       }
       .msg {
         max-width: 80%;
@@ -208,14 +227,14 @@
       }
       .msg.user {
         align-self: flex-end;
-        background: var(--primary-color);
-        color: white;
+        background: var(--user-bubble-bg);
+        color: var(--user-text);
         border-bottom-right-radius: 4px;
       }
       .msg.bot {
         align-self: flex-start;
-        background: #1e293b;
-        color: #e2e8f0;
+        background: var(--agent-bubble-bg);
+        color: var(--agent-text);
         border-bottom-left-radius: 4px;
         border: 1px solid rgba(255, 255, 255, 0.05);
       }
@@ -274,7 +293,7 @@
         border-color: var(--primary-color);
       }
       .send-btn {
-        background: var(--primary-color);
+        background: var(--audio-btn-bg);
         border: none;
         border-radius: 8px;
         width: 40px;
@@ -326,10 +345,19 @@
 
     const iconKey = branding.chatbotIcon || 'chat';
     let iconContentHtml = '';
-    if (icons[iconKey]) {
+    if (floatingIconUrl) {
+      iconContentHtml = `<img src="${floatingIconUrl}" style="width: 28px; height: 28px; object-fit: contain;" />`;
+    } else if (icons[iconKey]) {
       iconContentHtml = icons[iconKey];
     } else {
       iconContentHtml = `<span style="font-size: 26px; line-height: 1;">${iconKey}</span>`;
+    }
+
+    let avatarHtml = '';
+    if (avatarUrl) {
+      avatarHtml = `<img src="${avatarUrl}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-right: 12px;" />`;
+    } else {
+      avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 16px;">🤖</div>`;
     }
 
     const widget = document.createElement('div');
@@ -340,9 +368,12 @@
 
       <div class="window" id="window">
         <div class="header">
-          <div>
-            <div class="header-title">${branding.widgetTitle || botName}</div>
-            <div class="header-subtitle">${branding.welcomeText || 'Online'}</div>
+          <div style="display: flex; align-items: center;">
+            ${avatarHtml}
+            <div>
+              <div class="header-title">${displayName}</div>
+              <div class="header-subtitle">${branding.welcomeText || 'Online'}</div>
+            </div>
           </div>
           <button class="close-btn" id="close">&times;</button>
         </div>
@@ -370,7 +401,7 @@
     trigger.addEventListener('click', () => {
       win.classList.toggle('open');
       if (win.classList.contains('open') && msgsBox.children.length === 0) {
-        addMessage(branding.greetingMessage || 'Halo!', false);
+        addMessage(welcomeMessage, false);
       }
       textInput.focus();
     });

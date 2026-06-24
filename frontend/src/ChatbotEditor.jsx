@@ -30,6 +30,23 @@ export default function ChatbotEditor() {
   const [testingAI, setTestingAI] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
 
+  // Appearance / Branding State
+  const [brandingConfig, setBrandingConfig] = useState({
+    primaryColor: '#fb2c36',
+    chatBackground: '#ffffff',
+    headerBackground: '#fb2c36',
+    headerTextColor: '#ffffff',
+    userBubbleColor: '#fb2c36',
+    userTextColor: '#ffffff',
+    agentBubbleColor: '#f1f5f9',
+    agentTextColor: '#0f172a',
+    audioButtonColor: '#fb2c36',
+    avatarUrl: '',
+    floatingIconUrl: '',
+    displayName: 'Support Bot',
+    welcomeMessage: 'Hi! How can I help?'
+  });
+
   // Intents State
   const [intents, setIntents] = useState([]);
   const [intentsLoading, setIntentsLoading] = useState(false);
@@ -104,6 +121,13 @@ export default function ChatbotEditor() {
         setAgentKey(configData.agentKey || '');
         setNlpConfig(configData.nlp || {});
         setSimilarityThreshold(configData.nlp?.similarityThreshold ?? 0.6);
+        if (configData.branding) {
+          // If it's a string, parse it. If it's an object, spread it.
+          const parsedBranding = typeof configData.branding === 'string' 
+            ? JSON.parse(configData.branding) 
+            : configData.branding;
+          setBrandingConfig(prev => ({ ...prev, ...parsedBranding }));
+        }
       } else {
         showToast('Gagal memuat konfigurasi bot', 'error');
       }
@@ -209,7 +233,8 @@ export default function ChatbotEditor() {
           nlp: {
             ...nlpConfig,
             similarityThreshold: parseFloat(similarityThreshold)
-          }
+          },
+          branding: brandingConfig
         })
       });
 
@@ -600,6 +625,14 @@ export default function ChatbotEditor() {
               <svg className="editor-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
               AI Playground
             </button>
+            <button 
+              className={`editor-nav-item ${activeTab === 'appearance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('appearance')}
+              style={activeTab === 'appearance' ? {background: 'rgba(251, 44, 54, 0.1)', color: '#fb2c36', borderColor: '#fb2c36'} : {}}
+            >
+              <svg className="editor-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+              Appearance
+            </button>
           </nav>
 
           <div className="editor-theme-select">
@@ -803,6 +836,209 @@ export default function ChatbotEditor() {
                   </div>
                 </div>
               </form>
+            </div>
+          )}
+
+          {activeTab === 'appearance' && (
+            <div className="editor-section">
+              <div className="section-header">
+                <h2>Appearance Settings</h2>
+                <p>Manage your AI agent's visual configuration, branding, and colors.</p>
+              </div>
+
+              <div className="appearance-container" style={{display: 'flex', gap: '2rem'}}>
+                <form onSubmit={handleSaveConfig} className="config-form" style={{flex: 1}}>
+                  <div className="editor-card card">
+                    <h3 style={{marginBottom: '1rem'}}>Colors & Styling</h3>
+                    
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+                      <div className="form-group">
+                        <label>Primary Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.primaryColor} onChange={(e) => setBrandingConfig({...brandingConfig, primaryColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.primaryColor} onChange={(e) => setBrandingConfig({...brandingConfig, primaryColor: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Chat Background</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.chatBackground} onChange={(e) => setBrandingConfig({...brandingConfig, chatBackground: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.chatBackground} onChange={(e) => setBrandingConfig({...brandingConfig, chatBackground: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Header Background</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.headerBackground} onChange={(e) => setBrandingConfig({...brandingConfig, headerBackground: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.headerBackground} onChange={(e) => setBrandingConfig({...brandingConfig, headerBackground: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Header Text Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.headerTextColor} onChange={(e) => setBrandingConfig({...brandingConfig, headerTextColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.headerTextColor} onChange={(e) => setBrandingConfig({...brandingConfig, headerTextColor: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>User Bubble Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.userBubbleColor} onChange={(e) => setBrandingConfig({...brandingConfig, userBubbleColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.userBubbleColor} onChange={(e) => setBrandingConfig({...brandingConfig, userBubbleColor: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>User Text Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.userTextColor} onChange={(e) => setBrandingConfig({...brandingConfig, userTextColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.userTextColor} onChange={(e) => setBrandingConfig({...brandingConfig, userTextColor: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Agent Bubble Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.agentBubbleColor} onChange={(e) => setBrandingConfig({...brandingConfig, agentBubbleColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.agentBubbleColor} onChange={(e) => setBrandingConfig({...brandingConfig, agentBubbleColor: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Agent Text Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.agentTextColor} onChange={(e) => setBrandingConfig({...brandingConfig, agentTextColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.agentTextColor} onChange={(e) => setBrandingConfig({...brandingConfig, agentTextColor: e.target.value})} />
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label>Audio Button Color</label>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          <input type="color" value={brandingConfig.audioButtonColor} onChange={(e) => setBrandingConfig({...brandingConfig, audioButtonColor: e.target.value})} style={{width: '36px', height: '36px', padding: '0', cursor: 'pointer'}} />
+                          <input type="text" className="form-input" value={brandingConfig.audioButtonColor} onChange={(e) => setBrandingConfig({...brandingConfig, audioButtonColor: e.target.value})} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <h3 style={{marginTop: '2rem', marginBottom: '1rem'}}>Branding</h3>
+                    <div className="form-group">
+                      <label>Chatbot Avatar / Logo URL</label>
+                      <input type="url" className="form-input" value={brandingConfig.avatarUrl} onChange={(e) => setBrandingConfig({...brandingConfig, avatarUrl: e.target.value})} placeholder="https://example.com/avatar.png" />
+                    </div>
+                    <div className="form-group">
+                      <label>Floating Button Icon URL</label>
+                      <input type="url" className="form-input" value={brandingConfig.floatingIconUrl} onChange={(e) => setBrandingConfig({...brandingConfig, floatingIconUrl: e.target.value})} placeholder="https://example.com/icon.png" />
+                    </div>
+                    <div className="form-group">
+                      <label>Display Name</label>
+                      <input type="text" className="form-input" value={brandingConfig.displayName} onChange={(e) => setBrandingConfig({...brandingConfig, displayName: e.target.value})} placeholder="Support Bot" />
+                    </div>
+                    <div className="form-group">
+                      <label>Welcome Message</label>
+                      <input type="text" className="form-input" value={brandingConfig.welcomeMessage} onChange={(e) => setBrandingConfig({...brandingConfig, welcomeMessage: e.target.value})} placeholder="Hi! How can I help?" />
+                    </div>
+
+                    <div className="actions-row" style={{marginTop: '2rem'}}>
+                      <button type="submit" className="btn-primary" disabled={savingConfig}>
+                        {savingConfig ? 'Menyimpan...' : 'Save Appearance'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                {/* Live Preview Pane */}
+                <div style={{flex: 1, minWidth: '300px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '2rem', position: 'relative', overflow: 'hidden'}}>
+                  <div style={{position: 'absolute', top: '10px'}}>
+                    <span style={{background: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', color: '#64748b'}}>Live Preview</span>
+                  </div>
+                  
+                  {/* Fake Widget */}
+                  <div style={{
+                    width: '320px', 
+                    height: '450px', 
+                    background: brandingConfig.chatBackground, 
+                    borderRadius: '16px', 
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    overflow: 'hidden',
+                    border: '1px solid rgba(0,0,0,0.05)'
+                  }}>
+                    {/* Header */}
+                    <div style={{
+                      background: brandingConfig.headerBackground, 
+                      color: brandingConfig.headerTextColor, 
+                      padding: '16px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '12px'
+                    }}>
+                      {brandingConfig.avatarUrl ? (
+                        <img src={brandingConfig.avatarUrl} style={{width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover'}} alt="avatar" />
+                      ) : (
+                        <div style={{width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>🤖</div>
+                      )}
+                      <div style={{fontWeight: '600', fontSize: '16px'}}>{brandingConfig.displayName || 'Support Bot'}</div>
+                    </div>
+                    
+                    {/* Messages Area */}
+                    <div style={{flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto'}}>
+                      {/* Bot Message */}
+                      <div style={{display: 'flex', gap: '8px', alignItems: 'flex-start'}}>
+                        {brandingConfig.avatarUrl ? (
+                          <img src={brandingConfig.avatarUrl} style={{width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover', marginTop: '4px'}} alt="avatar" />
+                        ) : (
+                          <div style={{width: '24px', height: '24px', borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', marginTop: '4px'}}>🤖</div>
+                        )}
+                        <div style={{
+                          background: brandingConfig.agentBubbleColor, 
+                          color: brandingConfig.agentTextColor, 
+                          padding: '10px 14px', 
+                          borderRadius: '12px', 
+                          borderTopLeftRadius: '4px',
+                          fontSize: '14px',
+                          maxWidth: '80%'
+                        }}>
+                          {brandingConfig.welcomeMessage || 'Hi! How can I help?'}
+                        </div>
+                      </div>
+
+                      {/* User Message */}
+                      <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+                        <div style={{
+                          background: brandingConfig.userBubbleColor, 
+                          color: brandingConfig.userTextColor, 
+                          padding: '10px 14px', 
+                          borderRadius: '12px', 
+                          borderTopRightRadius: '4px',
+                          fontSize: '14px',
+                          maxWidth: '80%'
+                        }}>
+                          I need some help!
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Input Area */}
+                    <div style={{padding: '12px 16px', borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: '8px', alignItems: 'center'}}>
+                      <div style={{flex: 1, background: '#f1f5f9', borderRadius: '20px', padding: '8px 16px', fontSize: '14px', color: '#64748b'}}>
+                        Type a message...
+                      </div>
+                      <div style={{width: '32px', height: '32px', borderRadius: '50%', background: brandingConfig.audioButtonColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff'}}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Floating button preview */}
+                  <div style={{position: 'absolute', bottom: '24px', right: '24px'}}>
+                    <div style={{width: '48px', height: '48px', borderRadius: '50%', background: brandingConfig.primaryColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)'}}>
+                      {brandingConfig.floatingIconUrl ? (
+                        <img src={brandingConfig.floatingIconUrl} style={{width: '24px', height: '24px', objectFit: 'contain'}} alt="icon" />
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
