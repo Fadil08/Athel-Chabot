@@ -448,30 +448,28 @@
       const msg = document.createElement('div');
       msg.classList.add('msg', isUser ? 'user' : 'bot');
       
-      if (!isUser && sourceInfo) {
-        if (sourceInfo.source === 'knowledge_base') {
-          msg.classList.add('kb-source');
+      if (!isUser && sourceInfo && sourceInfo.source === 'knowledge_base') {
+        msg.classList.add('kb-source');
+        msg.innerHTML = `
+          <div class="badge">📚 PDF Resource</div>
+          <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
+          <div class="citation">📄 Sumber: <strong>${sourceInfo.filename}</strong> (Hal. ${sourceInfo.pageNumber})</div>
+        `;
+      } else if (!isUser && sourceInfo && sourceInfo.source === 'ai_llm') {
+        msg.classList.add('ai-source');
+        
+        let badgeText = '🤖 AI Model';
+        if (sourceInfo.filename) {
           msg.innerHTML = `
-            <div class="badge">📚 PDF Resource</div>
+            <div class="badge ai">🤖 AI RAG RESPOND</div>
             <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
-            <div class="citation">📄 Sumber: <strong>${sourceInfo.filename}</strong> (Hal. ${sourceInfo.pageNumber})</div>
+            <div class="citation">📄 Referensi PDF: <strong>${sourceInfo.filename}</strong> (Hal. ${sourceInfo.pageNumber})</div>
           `;
-        } else if (sourceInfo.source === 'ai_llm') {
-          msg.classList.add('ai-source');
-          
-          let badgeText = '🤖 AI Model';
-          if (sourceInfo.filename) {
-            msg.innerHTML = `
-              <div class="badge ai">🤖 AI RAG RESPOND</div>
-              <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
-              <div class="citation">📄 Referensi PDF: <strong>${sourceInfo.filename}</strong> (Hal. ${sourceInfo.pageNumber})</div>
-            `;
-          } else {
-            msg.innerHTML = `
-              <div class="badge ai">${badgeText}</div>
-              <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
-            `;
-          }
+        } else {
+          msg.innerHTML = `
+            <div class="badge ai">${badgeText}</div>
+            <div style="line-height: 1.5;">${parseMarkdown(text)}</div>
+          `;
         }
       } else if (!isUser) {
         msg.innerHTML = `<div style="line-height: 1.5;">${parseMarkdown(text)}</div>`;
