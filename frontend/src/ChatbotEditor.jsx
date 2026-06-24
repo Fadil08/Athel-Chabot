@@ -23,6 +23,8 @@ export default function ChatbotEditor() {
   const [aiModel, setAiModel] = useState('');
   const [aiApiKey, setAiApiKey] = useState('');
   const [aiSystemPrompt, setAiSystemPrompt] = useState('');
+  const [similarityThreshold, setSimilarityThreshold] = useState(0.6);
+  const [nlpConfig, setNlpConfig] = useState({});
   const [botName, setBotName] = useState('');
   const [agentKey, setAgentKey] = useState('');
   const [testingAI, setTestingAI] = useState(false);
@@ -100,6 +102,8 @@ export default function ChatbotEditor() {
         setAiApiKey(configData.aiApiKey || '');
         setAiSystemPrompt(configData.aiSystemPrompt || '');
         setAgentKey(configData.agentKey || '');
+        setNlpConfig(configData.nlp || {});
+        setSimilarityThreshold(configData.nlp?.similarityThreshold ?? 0.6);
       } else {
         showToast('Gagal memuat konfigurasi bot', 'error');
       }
@@ -201,7 +205,11 @@ export default function ChatbotEditor() {
           aiProvider,
           aiModel,
           aiApiKey,
-          aiSystemPrompt
+          aiSystemPrompt,
+          nlp: {
+            ...nlpConfig,
+            similarityThreshold: parseFloat(similarityThreshold)
+          }
         })
       });
 
@@ -704,6 +712,21 @@ export default function ChatbotEditor() {
                       />
                       <span className="slider round"></span>
                     </label>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Sensitivitas Pencocokan Kata (Similarity Threshold)</label>
+                    <input 
+                      type="range" 
+                      min="0.1" max="1.0" step="0.1"
+                      className="form-input" 
+                      value={similarityThreshold}
+                      onChange={(e) => setSimilarityThreshold(e.target.value)} 
+                      style={{padding: '0', cursor: 'pointer', height: 'auto'}}
+                    />
+                    <div className="form-hint" style={{marginTop: '4px', fontSize: '13px'}}>
+                      Skor: <strong>{similarityThreshold}</strong>. Semakin rendah nilai, semakin mudah cocok namun rawan salah tangkap. (Saran: 0.6 - 0.8)
+                    </div>
                   </div>
 
                   {aiEnabled && (
