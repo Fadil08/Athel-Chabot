@@ -54,6 +54,9 @@ export default function ChatbotEditor() {
   const [aiSystemPrompt, setAiSystemPrompt] = useState('');
   const [similarityThreshold, setSimilarityThreshold] = useState(0.6);
   const [nlpEnabled, setNlpEnabled] = useState(true);
+  const [cacheEnabled, setCacheEnabled] = useState(true);
+  const [rateLimitEnabled, setRateLimitEnabled] = useState(true);
+  const [rateLimitMax, setRateLimitMax] = useState(20);
   const [nlpConfig, setNlpConfig] = useState({});
   const [botName, setBotName] = useState('Support Bot');
   const [agentKey, setAgentKey] = useState('');
@@ -149,6 +152,9 @@ export default function ChatbotEditor() {
         setAiSystemPrompt(configData.aiSystemPrompt || '');
         setSimilarityThreshold(configData.nlp?.similarityThreshold || 0.6);
         setNlpEnabled(configData.nlp?.nlpEnabled !== false);
+        setCacheEnabled(configData.nlp?.cacheEnabled !== false);
+        setRateLimitEnabled(configData.nlp?.rateLimitEnabled !== false);
+        setRateLimitMax(configData.nlp?.rateLimitMax || 20);
         setNlpConfig(configData.nlp || {});
         setBotName(configData.botName || 'Support Bot');
         setAgentKey(configData.agentKey || '');
@@ -265,7 +271,10 @@ export default function ChatbotEditor() {
           nlp: {
             ...nlpConfig,
             similarityThreshold: parseFloat(similarityThreshold),
-            nlpEnabled: nlpEnabled
+            nlpEnabled: nlpEnabled,
+            cacheEnabled: cacheEnabled,
+            rateLimitEnabled: rateLimitEnabled,
+            rateLimitMax: parseInt(rateLimitMax, 10)
           },
           branding: brandingConfig
         })
