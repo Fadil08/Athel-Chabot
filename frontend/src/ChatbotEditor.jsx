@@ -490,7 +490,7 @@ export default function ChatbotEditor() {
         const data = await res.json();
         setChatMessages(prev => [...prev, {
           sender: 'bot',
-          text: data.reply || 'Maaf, saya tidak mengerti maksud Anda.',
+          text: data.response || 'Maaf, saya tidak mengerti maksud Anda.',
           time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
           source: data.source // intent, ai, kb, drive, default
         }]);
