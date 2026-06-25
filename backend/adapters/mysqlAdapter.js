@@ -66,7 +66,8 @@ class MysqlAdapter {
         id       INT AUTO_INCREMENT PRIMARY KEY,
         email    VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        name     VARCHAR(255)
+        name     VARCHAR(255),
+        role     VARCHAR(50) DEFAULT 'user'
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
 
@@ -140,6 +141,13 @@ class MysqlAdapter {
       // Ignore if already exists
     }
 
+    // Migration to add role to users table if not exists
+    try {
+      await this.query("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'user'");
+    } catch (e) {
+      // Ignore if already exists
+    }
+
     await this.query(`
       CREATE TABLE IF NOT EXISTS ai_cache (
         id         VARCHAR(128) PRIMARY KEY,
@@ -156,11 +164,14 @@ class MysqlAdapter {
   // ─── Auth & Users ─────────────────────────────────────────────────────────────
 
   async createUser(user) {
+    const [[{ cnt }]] = await this.query('SELECT COUNT(*) as cnt FROM users');
+    const role = cnt === 0 ? 'admin' : 'user';
+
     const result = await this.run(
-      'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
-      [user.email, user.password, user.name]
+      'INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)',
+      [user.email, user.password, user.name, role]
     );
-    return { id: result.insertId, email: user.email, name: user.name };
+    return { id: result.insertId, email: user.email, name: user.name, role };
   }
 
   async getUserByEmail(email) {
@@ -169,7 +180,7 @@ class MysqlAdapter {
   }
 
   async getUserById(id) {
-    const rows = await this.query('SELECT id, email, name FROM users WHERE id = ?', [id]);
+    const rows = await this.query('SELECT id, email, name, role FROM users WHERE id = ?', [id]);
     return rows[0] || null;
   }
 
@@ -179,9 +190,21 @@ class MysqlAdapter {
     if (userData.name !== undefined) { sets.push("name = ?"); params.push(userData.name); }
     if (userData.email !== undefined) { sets.push("email = ?"); params.push(userData.email); }
     if (userData.password !== undefined) { sets.push("password = ?"); params.push(userData.password); }
+    if (userData.role !== undefined) { sets.push("role = ?"); params.push(userData.role); }
     if (sets.length === 0) return true;
     params.push(id);
     await this.run(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`, params);
+    return true;
+  }
+
+  async getAllUsers() {
+    const rows = await this.query('SELECT id, email, name, role FROM users');
+    return rows;
+  }
+
+  async deleteUser(id) {
+    await this.run('DELETE FROM users WHERE id = ?', [id]);
+    // Note: chatbots have ON DELETE CASCADE so they will be deleted automatically by MySQL
     return true;
   }
 
@@ -199,6 +222,11 @@ class MysqlAdapter {
 
   async getChatbots(userId) {
     const rows = await this.query('SELECT * FROM chatbots WHERE userId = ?', [userId]);
+    return rows.map(r => this._parseBot(r));
+  }
+
+  async getAllChatbotsAdmin() {
+    const rows = await this.query('SELECT * FROM chatbots');
     return rows.map(r => this._parseBot(r));
   }
 
