@@ -279,7 +279,8 @@ app.post('/api/chatbots', authMiddleware, async (req, res) => {
     const newBot = await dbManager.addChatbot({ userId: req.user.id, name, businessType, agentKey });
     res.json(newBot);
   } catch (err) {
-    res.status(500).json({ error: 'Gagal membuat chatbot' });
+    console.error("Error in POST /api/chatbots:", err);
+    res.status(500).json({ error: 'Gagal membuat chatbot: ' + err.message });
   }
 });
 

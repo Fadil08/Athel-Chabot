@@ -37,8 +37,8 @@ class MysqlAdapter {
     // Fast path: Check if the users table (and therefore database/tables) already exists
     try {
       await this.query('SELECT 1 FROM users LIMIT 1');
-      console.log('Database tables already exist. Skipping creation/migration checks.');
-      return;
+      console.log('Database tables already exist. Checking for migrations...');
+      // DO NOT RETURN HERE, let the CREATE TABLE IF NOT EXISTS and ALTER TABLE run
     } catch (err) {
       console.log('Database or tables do not exist. Performing full setup...');
     }

@@ -4,14 +4,7 @@
 async function generateResponse(provider, apiKey, model, systemPrompt, userMessage, context = '') {
   let fullSystemPrompt = systemPrompt;
   if (context) {
-    fullSystemPrompt += `\n\n=== CONTEXT DATA ===\n${context}\n====================\n` +
-      `CRITICAL INSTRUCTION:\n` +
-      `- You MUST answer the user's question ONLY using the facts from the CONTEXT DATA above.\n` +
-      `- If the CONTEXT DATA does not contain the answer to the user's question, you must respond EXACTLY with the chatbot's fallback/greeting or state: "Maaf, data tidak ditemukan dalam dokumen akademik."\n` +
-      `- DO NOT make up information or use outside general knowledge about this institution/topic. If it's not in the context, say you don't know based on the documents.`;
-  } else {
-    fullSystemPrompt += `\n\nCRITICAL INSTRUCTION:\n` +
-      `- You have NO document context provided for this query. If you do not have specific intents, do not invent academic schedules or private details.`;
+    fullSystemPrompt += `\n\n=== CONTEXT DATA ===\n${context}\n====================\n`;
   }
 
   try {

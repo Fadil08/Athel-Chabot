@@ -77,7 +77,7 @@ async function findAnswer(chatbotId, userMessage, clientIp = '127.0.0.1') {
     language: 'id'
   };
   const branding = chatbot.branding || {
-    fallbackMessage: 'Maaf, saya belum mengerti pertanyaan Anda.',
+    fallbackMessage: 'Maaf, saya tidak mengerti pertanyaan anda, ingin terhubung dengan admin kami ? \n hubungi nomer berikut : 08123456789.',
     greetingMessage: 'Halo!'
   };
 
@@ -140,8 +140,11 @@ async function findAnswer(chatbotId, userMessage, clientIp = '127.0.0.1') {
       const fallbackMsg = branding.fallbackMessage || 'Maaf, saya belum mengerti pertanyaan Anda.';
       let systemPrompt = chatbot.aiSystemPrompt || 'Anda adalah asisten AI yang cerdas.';
       systemPrompt += `\n\nInstruksi Tambahan: 
-1. Bersikaplah ramah dan natural. Jika pengguna hanya menyapa atau mengobrol secara umum, tanggapi dengan sopan dan tawarkan bantuan. 
-2. Jika pengguna menanyakan informasi faktual yang spesifik namun jawabannya TIDAK DITEMUKAN di dalam data konteks dokumen yang disediakan, jangan mengarang jawaban. Anda harus merespons persis dengan kalimat ini: "${fallbackMsg}"`;
+1. Anda adalah asisten virtual untuk ${chatbot.name}. Anda diizinkan untuk berpikir dan bercakap-cakap secara luwes, ramah, dan natural layaknya manusia.
+2. JIKA pengguna hanya menyapa, basa-basi, atau menyatakan niat (contoh: "saya mau konsultasi", "halo", "selamat pagi"), Anda WAJIB merespons dengan ramah dan tanyakan apa yang bisa Anda bantu.
+3. BATASAN UTAMA: Untuk setiap pertanyaan yang meminta informasi spesifik, aturan, atau fakta, Anda HANYA BOLEH menjawab berdasarkan informasi yang ada di dalam 'Konteks Dokumen'.
+4. JIKA pengguna menanyakan pertanyaan yang informasinya TIDAK ADA di dalam data 'Konteks Dokumen', DILARANG KERAS mengarang fakta (halusinasi) atau mengambil dari pengetahuan umum Anda. Jawablah dengan jujur dan sopan menggunakan bahasa Anda sendiri bahwa Anda tidak memiliki informasi tersebut.
+5. Jadikan percakapan mengalir dengan baik tanpa terlihat kaku.`;
 
       // Rate Limiter Check
       if (nlpConfig.rateLimitEnabled) {
@@ -260,6 +263,12 @@ async function findAnswer(chatbotId, userMessage, clientIp = '127.0.0.1') {
       };
     } catch (aiErr) {
       console.error('Failed to query AI Model, falling back to local KB or fallback:', aiErr.message);
+      return {
+        found: false,
+        source: 'ai_error',
+        response: `[Error Sistem AI] Gagal menghubungi layanan AI (${chatbot.aiProvider}): ${aiErr.message}. Silakan cek pengaturan API Key atau batas kuota Anda.`,
+        category: 'Unanswered'
+      };
     }
   }
 
@@ -279,8 +288,9 @@ async function findAnswer(chatbotId, userMessage, clientIp = '127.0.0.1') {
   // 4. Fallback message
   return {
     found: false,
+    source: 'fallback',
     response: defaultFallback,
-    score: Math.max(bestIntentScore, scoredExcerpts[0] ? scoredExcerpts[0].score : 0)
+    category: 'Unanswered'
   };
 }
 
