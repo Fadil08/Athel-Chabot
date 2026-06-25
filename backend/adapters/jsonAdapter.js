@@ -63,23 +63,26 @@ class JsonAdapter {
       id: db.users.length > 0 ? Math.max(...db.users.map(u => u.id)) + 1 : 1,
       email: user.email,
       password: user.password,
-      name: user.name
+      name: user.name,
+      role: db.users.length === 0 ? 'admin' : 'user'
     };
     db.users.push(newUser);
     await this._write(db);
-    return { id: newUser.id, email: newUser.email, name: newUser.name };
+    return { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role };
   }
 
   async getUserByEmail(email) {
     const db = await this._read();
-    return db.users.find(u => u.email === email) || null;
+    const user = db.users.find(u => u.email === email) || null;
+    if (user && !user.role) user.role = 'user';
+    return user;
   }
 
   async getUserById(id) {
     const db = await this._read();
     const user = db.users.find(u => u.id === parseInt(id, 10));
     if (!user) return null;
-    return { id: user.id, email: user.email, name: user.name };
+    return { id: user.id, email: user.email, name: user.name, role: user.role || 'user' };
   }
 
   async updateUser(id, userData) {
@@ -94,9 +97,35 @@ class JsonAdapter {
       db.users[userIndex].email = userData.email;
     }
     if (userData.password !== undefined) db.users[userIndex].password = userData.password;
+    if (userData.role !== undefined) db.users[userIndex].role = userData.role;
     
     await this._write(db);
-    return { id: db.users[userIndex].id, email: db.users[userIndex].email, name: db.users[userIndex].name };
+    return { id: db.users[userIndex].id, email: db.users[userIndex].email, name: db.users[userIndex].name, role: db.users[userIndex].role || 'user' };
+  }
+
+  async getAllUsers() {
+    const db = await this._read();
+    return db.users.map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role || 'user' }));
+  }
+
+  async deleteUser(id) {
+    const db = await this._read();
+    const userId = parseInt(id, 10);
+    const userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex === -1) return false;
+
+    db.users.splice(userIndex, 1);
+    
+    const userBots = db.chatbots.filter(b => b.userId === userId);
+    for (const bot of userBots) {
+      db.intents = db.intents.filter(i => i.chatbotId !== bot.id);
+      db.documents = db.documents.filter(d => d.chatbotId !== bot.id);
+      db.knowledgeBase = db.knowledgeBase.filter(k => k.chatbotId !== bot.id);
+    }
+    db.chatbots = db.chatbots.filter(b => b.userId !== userId);
+
+    await this._write(db);
+    return true;
   }
 
   async getChatbots(userId) {
@@ -111,8 +140,19 @@ class JsonAdapter {
       }));
   }
 
+  async getAllChatbotsAdmin() {
+    const db = await this._read();
+    return db.chatbots.map(bot => ({
+      ...bot,
+      aiEnabled: !!bot.aiEnabled,
+      branding: bot.branding ? JSON.parse(bot.branding) : null,
+      nlp: bot.nlp ? JSON.parse(bot.nlp) : null
+    }));
+  }
+
   async getChatbotById(id, userId) {
     const db = await this._read();
+    // If userId is null, bypass ownership check
     const bot = db.chatbots.find(b => b.id === parseInt(id, 10) && (userId ? b.userId === parseInt(userId, 10) : true));
     if (!bot) return null;
     return {

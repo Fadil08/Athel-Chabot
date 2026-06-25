@@ -32,6 +32,14 @@ const chatbotEngine = require('./chatbotEngine');
 const pdfProcessor = require('./pdfProcessor');
 const authMiddleware = require('./middleware/auth');
 
+const adminMiddleware = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ error: 'Akses ditolak: Hanya administrator yang diizinkan' });
+  }
+};
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'chatagentive-super-secret-key-9988';
@@ -162,7 +170,7 @@ app.post('/api/auth/register', async (req, res) => {
       name
     });
 
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -186,10 +194,10 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email atau Password salah' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role || 'user' }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role || 'user' }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -296,7 +304,7 @@ app.delete('/api/chatbots/:id', authMiddleware, async (req, res) => {
 async function authorizeBot(req, res, next) {
   const { chatbotId } = req.params;
   try {
-    const bot = await dbManager.getChatbotById(chatbotId, req.user.id);
+    const bot = await dbManager.getChatbotById(chatbotId, req.user.role === 'admin' ? null : req.user.id);
     if (!bot) {
       return res.status(404).json({ error: 'Akses ditolak: Chatbot tidak ditemukan' });
     }
@@ -762,6 +770,47 @@ app.get('/api/agents/:agentKey/config', async (req, res) => {
       name: bot.name,
       branding: bot.branding
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 4.5. Admin Endpoints (Protected & Admin Only)
+// ==========================================
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const users = await dbManager.getAllUsers();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    await dbManager.deleteUser(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/chatbots', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const chatbots = await dbManager.getAllChatbotsAdmin();
+    res.json(chatbots);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/chatbots/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const bot = await dbManager.getChatbotById(req.params.id, null);
+    if (!bot) return res.status(404).json({ error: 'Chatbot tidak ditemukan' });
+    await dbManager.deleteChatbot(req.params.id, bot.userId);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

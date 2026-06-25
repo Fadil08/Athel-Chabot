@@ -5,6 +5,7 @@ const Login = lazy(() => import('./Login'));
 const Register = lazy(() => import('./Register'));
 const Dashboard = lazy(() => import('./Dashboard'));
 const ChatbotEditor = lazy(() => import('./ChatbotEditor'));
+const AdminDashboard = lazy(() => import('./AdminDashboard'));
 
 // A simple premium-looking fallback / loading spinner
 function PageLoader() {
@@ -46,6 +47,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/admin" element={<ChatbotEditor />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </Suspense>
     </Router>

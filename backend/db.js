@@ -138,12 +138,17 @@ module.exports = {
   },
 
   // Auth Users
+  async getAllUsers()            { return await getAdapter().getAllUsers(); },
+  async deleteUser(id)           { return await getAdapter().deleteUser(id); },
   async createUser(user)         { return await getAdapter().createUser(user); },
   async getUserByEmail(email)    { return await getAdapter().getUserByEmail(email); },
   async getUserById(id)          { return await getAdapter().getUserById(id); },
   async updateUser(id, data)     { return await getAdapter().updateUser(id, data); },
 
   // Chatbots
+  async getAllChatbotsAdmin() {
+    return await getAdapter().getAllChatbotsAdmin();
+  },
   async getChatbots(userId) {
     const bots = await getAdapter().getChatbots(userId);
     return bots.map(b => {
