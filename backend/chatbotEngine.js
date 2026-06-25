@@ -139,7 +139,9 @@ async function findAnswer(chatbotId, userMessage, clientIp = '127.0.0.1') {
     try {
       const fallbackMsg = branding.fallbackMessage || 'Maaf, saya belum mengerti pertanyaan Anda.';
       let systemPrompt = chatbot.aiSystemPrompt || 'Anda adalah asisten AI yang cerdas.';
-      systemPrompt += `\n\nJika informasi tidak ditemukan di data konteks yang disediakan, Anda harus membalas dengan pesan berikut secara persis: "${fallbackMsg}"`;
+      systemPrompt += `\n\nInstruksi Tambahan: 
+1. Bersikaplah ramah dan natural. Jika pengguna hanya menyapa atau mengobrol secara umum, tanggapi dengan sopan dan tawarkan bantuan. 
+2. Jika pengguna menanyakan informasi faktual yang spesifik namun jawabannya TIDAK DITEMUKAN di dalam data konteks dokumen yang disediakan, jangan mengarang jawaban. Anda harus merespons persis dengan kalimat ini: "${fallbackMsg}"`;
 
       // Rate Limiter Check
       if (nlpConfig.rateLimitEnabled) {
