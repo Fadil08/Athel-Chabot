@@ -12,6 +12,9 @@ export default function AdminDashboard() {
   const [allChatbots, setAllChatbots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [userFormData, setUserFormData] = useState({ name: '', email: '', password: '', role: 'user', maxChatbots: 3 });
   const navigate = useNavigate();
 
   const token = localStorage.getItem('aethel_token');
@@ -116,6 +119,51 @@ export default function AdminDashboard() {
     }
   };
 
+  const openUserModal = (user = null) => {
+    if (user) {
+      setEditingUser(user);
+      setUserFormData({ name: user.name, email: user.email, password: '', role: user.role || 'user', maxChatbots: user.maxChatbots !== undefined ? user.maxChatbots : 3 });
+    } else {
+      setEditingUser(null);
+      setUserFormData({ name: '', email: '', password: '', role: 'user', maxChatbots: 3 });
+    }
+    setShowUserModal(true);
+  };
+
+  const closeUserModal = () => {
+    setShowUserModal(false);
+    setEditingUser(null);
+  };
+
+  const handleUserFormSubmit = async (e) => {
+    e.preventDefault();
+    const isEditing = !!editingUser;
+    const url = isEditing ? `/api/admin/users/${editingUser.id}` : '/api/admin/users';
+    const method = isEditing ? 'PUT' : 'POST';
+
+    try {
+      const res = await apiFetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(userFormData)
+      });
+
+      if (res.ok) {
+        showToast(`User berhasil ${isEditing ? 'diperbarui' : 'dibuat'}`, 'success');
+        closeUserModal();
+        loadData();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || `Gagal ${isEditing ? 'memperbarui' : 'membuat'} user.`, 'error');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan jaringan.', 'error');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('aethel_token');
     localStorage.removeItem('aethel_user');
@@ -201,6 +249,12 @@ export default function AdminDashboard() {
             <p>Administer all users and system chatbots.</p>
           </div>
           <div className="header-actions">
+            {view === 'users' && (
+              <button className="btn primary" onClick={() => openUserModal()}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Tambah User
+              </button>
+            )}
             <button className="btn outline" onClick={loadData}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
             </button>
@@ -226,6 +280,7 @@ export default function AdminDashboard() {
                     <th>Nama</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Max Bots</th>
                     <th>Chatbots</th>
                     <th>Aksi</th>
                   </tr>
@@ -241,11 +296,17 @@ export default function AdminDashboard() {
                         <td>
                           <span className={`role-badge ${u.role}`}>{u.role}</span>
                         </td>
+                        <td>{u.maxChatbots !== undefined ? u.maxChatbots : 3}</td>
                         <td>{uBots.length}</td>
                         <td>
-                          <button className="btn-icon delete" onClick={() => handleDeleteUser(u.id)} title="Hapus User">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                          </button>
+                          <div className="action-buttons">
+                            <button className="btn-icon edit" onClick={() => openUserModal(u)} title="Edit User">
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button className="btn-icon delete" onClick={() => handleDeleteUser(u.id)} title="Hapus User" disabled={u.id === user.id}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -306,6 +367,49 @@ export default function AdminDashboard() {
           )}
         </div>
       </main>
+
+      {/* User Modal */}
+      {showUserModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal">
+            <div className="admin-modal-header">
+              <h3>{editingUser ? 'Edit User' : 'Tambah User'}</h3>
+              <button className="btn-close" onClick={closeUserModal}>×</button>
+            </div>
+            <form className="admin-modal-body" onSubmit={handleUserFormSubmit}>
+              <div className="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" value={userFormData.name} onChange={e => setUserFormData({...userFormData, name: e.target.value})} required placeholder="John Doe" />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input type="email" value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} required placeholder="john@example.com" />
+              </div>
+              <div className="form-group">
+                <label>{editingUser ? 'Password (kosongkan jika tidak ingin diubah)' : 'Password'}</label>
+                <input type="text" value={userFormData.password} onChange={e => setUserFormData({...userFormData, password: e.target.value})} required={!editingUser} placeholder={editingUser ? "Kosongkan untuk tidak mengubah" : "Password rahasia"} />
+              </div>
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Role</label>
+                  <select value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value})}>
+                    <option value="user">User Biasa</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Limit Chatbot</label>
+                  <input type="number" value={userFormData.maxChatbots} onChange={e => setUserFormData({...userFormData, maxChatbots: parseInt(e.target.value) || 0})} min="0" required />
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button type="button" className="btn outline" onClick={closeUserModal}>Batal</button>
+                <button type="submit" className="btn primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

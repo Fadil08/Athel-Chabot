@@ -64,11 +64,12 @@ class JsonAdapter {
       email: user.email,
       password: user.password,
       name: user.name,
-      role: db.users.length === 0 ? 'admin' : 'user'
+      role: db.users.length === 0 ? 'admin' : 'user',
+      maxChatbots: user.maxChatbots !== undefined ? user.maxChatbots : 3
     };
     db.users.push(newUser);
     await this._write(db);
-    return { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role };
+    return { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role, maxChatbots: newUser.maxChatbots };
   }
 
   async getUserByEmail(email) {
@@ -82,30 +83,38 @@ class JsonAdapter {
     const db = await this._read();
     const user = db.users.find(u => u.id === parseInt(id, 10));
     if (!user) return null;
-    return { id: user.id, email: user.email, name: user.name, role: user.role || 'user' };
+    return { id: user.id, email: user.email, name: user.name, role: user.role || 'user', maxChatbots: user.maxChatbots !== undefined ? user.maxChatbots : 3 };
   }
 
   async updateUser(id, userData) {
     const db = await this._read();
     const userIndex = db.users.findIndex(u => u.id === parseInt(id, 10));
     if (userIndex === -1) throw new Error('User tidak ditemukan');
+    const user = db.users[userIndex];
     
-    if (userData.name !== undefined) db.users[userIndex].name = userData.name;
+    if (userData.name !== undefined) user.name = userData.name;
     if (userData.email !== undefined) {
       const existing = db.users.find(u => u.email === userData.email && u.id !== parseInt(id, 10));
       if (existing) throw new Error('Email sudah digunakan');
-      db.users[userIndex].email = userData.email;
+      user.email = userData.email;
     }
-    if (userData.password !== undefined) db.users[userIndex].password = userData.password;
-    if (userData.role !== undefined) db.users[userIndex].role = userData.role;
+    if (userData.password !== undefined) user.password = userData.password;
+    if (userData.role !== undefined) user.role = userData.role;
+    if (userData.maxChatbots !== undefined) user.maxChatbots = parseInt(userData.maxChatbots, 10);
     
     await this._write(db);
-    return { id: db.users[userIndex].id, email: db.users[userIndex].email, name: db.users[userIndex].name, role: db.users[userIndex].role || 'user' };
+    return { id: user.id, email: user.email, name: user.name, role: user.role || 'user', maxChatbots: user.maxChatbots };
   }
 
   async getAllUsers() {
     const db = await this._read();
-    return db.users.map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role || 'user' }));
+    return db.users.map(u => ({ 
+      id: u.id, 
+      email: u.email, 
+      name: u.name, 
+      role: u.role || 'user',
+      maxChatbots: u.maxChatbots !== undefined ? u.maxChatbots : 3
+    }));
   }
 
   async deleteUser(id) {

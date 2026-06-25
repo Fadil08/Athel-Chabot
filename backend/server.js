@@ -262,22 +262,24 @@ app.get('/api/chatbots', authMiddleware, async (req, res) => {
 
 app.post('/api/chatbots', authMiddleware, async (req, res) => {
   const { name, businessType } = req.body;
-  if (!name) {
-    return res.status(400).json({ error: 'Nama chatbot wajib diisi' });
-  }
+  if (!name) return res.status(400).json({ error: 'Nama chatbot diperlukan' });
 
   try {
-    // Generate secure agent key
+    // Enforce limits
+    const user = await dbManager.getUserById(req.user.id);
+    const maxChatbots = user ? (user.maxChatbots !== undefined ? user.maxChatbots : 3) : 3;
+    
+    // Check current count
+    const currentBots = await dbManager.getChatbots(req.user.id);
+    if (currentBots.length >= maxChatbots) {
+      return res.status(403).json({ error: `Anda telah mencapai batas maksimal pembuatan chatbot (${maxChatbots}).` });
+    }
+
     const agentKey = crypto.randomBytes(24).toString('hex');
-    const newBot = await dbManager.addChatbot({
-      userId: req.user.id,
-      name,
-      businessType: businessType || 'Other',
-      agentKey
-    });
+    const newBot = await dbManager.addChatbot({ userId: req.user.id, name, businessType, agentKey });
     res.json(newBot);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Gagal membuat chatbot' });
   }
 });
 
@@ -793,6 +795,51 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { email, password, name, role, maxChatbots } = req.body;
+    if (!email || !password || !name) return res.status(400).json({ error: 'Email, password, dan nama wajib diisi.' });
+    
+    const existing = await dbManager.getUserByEmail(email);
+    if (existing) return res.status(400).json({ error: 'Email sudah terdaftar.' });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await dbManager.createUser({ 
+      email, 
+      password: hashedPassword, 
+      name, 
+      role: role || 'user', 
+      maxChatbots: maxChatbots !== undefined ? parseInt(maxChatbots, 10) : 3 
+    });
+    
+    res.json(newUser);
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal membuat user' });
+  }
+});
+
+app.put('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role, password, maxChatbots } = req.body;
+    
+    const updates = {};
+    if (name) updates.name = name;
+    if (email) updates.email = email;
+    if (role) updates.role = role;
+    if (maxChatbots !== undefined) updates.maxChatbots = parseInt(maxChatbots, 10);
+    
+    if (password && password.trim() !== '') {
+      updates.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await dbManager.updateUser(id, updates);
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Gagal memperbarui user' });
   }
 });
 
