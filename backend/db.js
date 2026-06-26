@@ -193,6 +193,10 @@ module.exports = {
   async addKnowledgeBase(chatbotId, excerpts)    { return await getAdapter().addKnowledgeBase(chatbotId, excerpts); },
   async clearKnowledgeBase(documentId, chatbotId) { return await getAdapter().clearKnowledgeBase(documentId, chatbotId); },
 
+  // AI Cache
+  async getCachedResponse(chatbotId, queryHash) { return await getAdapter().getCachedResponse(chatbotId, queryHash); },
+  async setCachedResponse(chatbotId, queryHash, response) { return await getAdapter().setCachedResponse(chatbotId, queryHash, response); },
+
   // Stats optimized helper
   async getStats(chatbotId, userId) {
     const adapter = getAdapter();
