@@ -77,7 +77,8 @@ export default function ChatbotEditor() {
     avatarUrl: '',
     floatingIconUrl: '',
     displayName: 'Support Bot',
-    welcomeMessage: 'Hi! How can I help?'
+    welcomeMessage: 'Hi! How can I help?',
+    adminContactUrl: ''
   });
 
   // Intents State
@@ -1038,6 +1039,11 @@ export default function ChatbotEditor() {
                       <label>Welcome Message</label>
                       <input type="text" className="form-input" value={brandingConfig.welcomeMessage} onChange={(e) => setBrandingConfig({...brandingConfig, welcomeMessage: e.target.value})} placeholder="Hi! How can I help?" />
                     </div>
+                    <div className="form-group">
+                      <label>Kontak Admin (URL WhatsApp / Live Chat)</label>
+                      <input type="url" className="form-input" value={brandingConfig.adminContactUrl || ''} onChange={(e) => setBrandingConfig({...brandingConfig, adminContactUrl: e.target.value})} placeholder="https://wa.me/62812..." />
+                      <small style={{color: '#9ca3af', marginTop: '4px', display: 'block'}}>Jika diisi, tombol "Hubungi Admin" akan muncul di header chatbot.</small>
+                    </div>
 
                     <div className="actions-row" style={{marginTop: '2rem'}}>
                       <button type="submit" className="btn-primary" disabled={savingConfig}>
@@ -1079,7 +1085,24 @@ export default function ChatbotEditor() {
                       ) : (
                         <div style={{width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>🤖</div>
                       )}
-                      <div style={{fontWeight: '600', fontSize: '16px'}}>{brandingConfig.displayName || 'Support Bot'}</div>
+                      <div style={{fontWeight: '600', fontSize: '16px', flex: 1}}>{brandingConfig.displayName || 'Support Bot'}</div>
+                      {brandingConfig.adminContactUrl && (
+                        <a href={brandingConfig.adminContactUrl} target="_blank" rel="noreferrer" style={{
+                          fontSize: '12px',
+                          color: brandingConfig.headerTextColor,
+                          textDecoration: 'none',
+                          border: `1px solid ${brandingConfig.headerTextColor}`,
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          opacity: 0.9
+                        }}>
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.37 1.23 4.79L2 22l5.37-1.16C8.75 21.57 10.33 22 12 22c5.52 22 10-4.48 10-10S17.52 2 12 2zm3.89 13.91c-.19.53-1.09 1.01-1.52 1.05-.4.04-.92.1-2.61-.6-2.04-.84-3.37-2.92-3.47-3.06-.1-.13-.83-1.11-.83-2.11s.52-1.5.71-1.7c.18-.2.4-.25.54-.25s.27 0 .38.01c.12.01.27-.04.42.32.16.37.54 1.33.59 1.43.05.1.08.21.01.35-.07.13-.1.21-.21.34-.09.12-.2.27-.27.35-.09.1-.19.21-.08.41.11.2 1.3 1.31 1.49 1.5.19.19.38.25.59.15.2-.1.32-.2.43-.32.11-.12.22-.38.28-.51.06-.13.12-.11.23-.07s1.39.66 1.63.78c.24.11.39.17.45.27.06.1.06.58-.13 1.11z"/></svg>
+                          Admin
+                        </a>
+                      )}
                     </div>
                     
                     {/* Messages Area */}

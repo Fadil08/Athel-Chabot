@@ -372,7 +372,26 @@
             ${avatarHtml}
             <div>
               <div class="header-title">${displayName}</div>
-              <div class="header-subtitle">${branding.welcomeText || 'Online'}</div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="header-subtitle">${branding.welcomeText || 'Online'}</div>
+                ${branding.adminContactUrl ? `
+                <a href="${branding.adminContactUrl}" target="_blank" rel="noreferrer" style="
+                  font-size: 11px;
+                  color: inherit;
+                  text-decoration: none;
+                  border: 1px solid currentColor;
+                  padding: 2px 6px;
+                  border-radius: 8px;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 3px;
+                  opacity: 0.9;
+                ">
+                  <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.74.45 3.37 1.23 4.79L2 22l5.37-1.16C8.75 21.57 10.33 22 12 22c5.52 22 10-4.48 10-10S17.52 2 12 2zm3.89 13.91c-.19.53-1.09 1.01-1.52 1.05-.4.04-.92.1-2.61-.6-2.04-.84-3.37-2.92-3.47-3.06-.1-.13-.83-1.11-.83-2.11s.52-1.5.71-1.7c.18-.2.4-.25.54-.25s.27 0 .38.01c.12.01.27-.04.42.32.16.37.54 1.33.59 1.43.05.1.08.21.01.35-.07.13-.1.21-.34-.09.12-.2.27-.27.35-.09.1-.19.21-.08.41.11.2 1.3 1.31 1.49 1.5.19.19.38.25.59.15.2-.1.32-.2.43-.32.11-.12.22-.38.28-.51.06-.13.12-.11.23-.07s1.39.66 1.63.78c.24.11.39.17.45.27.06.1.06.58-.13 1.11z"/></svg>
+                  Admin
+                </a>
+                ` : ''}
+              </div>
             </div>
           </div>
           <button class="close-btn" id="close">&times;</button>
